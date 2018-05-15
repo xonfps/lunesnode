@@ -15,14 +15,20 @@ import scorex.account.Address
 import scala.concurrent.duration._
 import scala.util.{Left, Right}
 
-/**
-  *
-  */
+/** Common Validation object. */
 object CommonValidation {
 
   val MaxTimeTransactionOverBlockDiff: FiniteDuration = 90.minutes
   val MaxTimePrevBlockOverTransactionDiff: FiniteDuration = 2.hours
 
+  /** Disallows sending Transaction case Greater than Transaction.
+    * @param s The Snapshot State Reader object.
+    * @param settings The Functionality Settings.
+    * @param blockTime The block Time.
+    * @param tx The Input Transaction Descendant.
+    * @tparam T Type Parameter descendant of [[Transaction]].
+    * @return Returns Either an T object (case Success) or a ValidationError (case Failure).
+    */
   def disallowSendingGreaterThanBalance[T <: Transaction](s: SnapshotStateReader, settings: FunctionalitySettings, blockTime: Long, tx: T): Either[ValidationError, T] =
     if (blockTime >= settings.allowTemporaryNegativeUntil) {
       def checkTransfer(sender: Address, assetId: Option[AssetId], amount: Long, feeAssetId: Option[AssetId], feeAmount: Long) = {
@@ -61,6 +67,14 @@ object CommonValidation {
       }
     } else Right(tx)
 
+  /** Disallows Duplicated IDs.
+    * @param state The Snapshot State Reader.
+    * @param settings The Functionality Settings.
+    * @param height The height of the Block.
+    * @param tx The input Transaction Descendant.
+    * @tparam T Type Parameter descendant of [[Transaction]].
+    * @return Returns Either an T object (case Success) or a ValidationError (case Failure).
+    */
   def disallowDuplicateIds[T <: Transaction](state: SnapshotStateReader, settings: FunctionalitySettings, height: Int, tx: T): Either[ValidationError, T] = tx match {
     case ptx: PaymentTransaction => Right(tx)
     case _ =>
@@ -70,6 +84,13 @@ object CommonValidation {
       }
   }
 
+  /** Disallows Before Activation Time.
+    * @param featureProvider The Feature Provider.
+    * @param height The height of the Block.
+    * @param tx The input Transaction Descendant.
+    * @tparam T Type Parameter descendant of [[Transaction]].
+    * @return Returns Either a T object (case Success) or a ValidationError (case Failure).
+    */
   def disallowBeforeActivationTime[T <: Transaction](featureProvider: FeatureProvider, height: Int, tx: T): Either[ValidationError, T] = {
 
     def activationBarrier(b: BlockchainFeature) =
@@ -93,6 +114,13 @@ object CommonValidation {
     }
   }
 
+  /** Disallows Transaction from a Future.
+    * @param settings The Functionality Settings.
+    * @param time The Time of the Transaction.
+    * @param tx The input Transaction Descendant.
+    * @tparam T Type Parameter descendant of [[Transaction]].
+    * @return Returns Either a T object (case Success) or a ValidationError (case Failure).
+    */
   def disallowTxFromFuture[T <: Transaction](settings: FunctionalitySettings, time: Long, tx: T): Either[ValidationError, T] = {
     val allowTransactionsFromFutureByTimestamp = tx.timestamp < settings.allowTransactionsFromFutureUntil
     if (!allowTransactionsFromFutureByTimestamp && tx.timestamp - time > MaxTimeTransactionOverBlockDiff.toMillis)
@@ -100,6 +128,12 @@ object CommonValidation {
     else Right(tx)
   }
 
+  /** Disallows Transaction from the Past.
+    * @param prevBlockTime The Previous Block Time.
+    * @param tx The input Transaction Descendant.
+    * @tparam T Type Parameter descendant of [[Transaction]].
+    * @return Returns Either a T object (case Success) or a ValidationError.
+    */
   def disallowTxFromPast[T <: Transaction](prevBlockTime: Option[Long], tx: T): Either[ValidationError, T] =
     prevBlockTime match {
       case Some(t) if (t - tx.timestamp) > MaxTimePrevBlockOverTransactionDiff.toMillis =>

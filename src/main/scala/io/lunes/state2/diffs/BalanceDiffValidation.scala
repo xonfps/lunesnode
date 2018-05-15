@@ -12,11 +12,15 @@ import scorex.utils.ScorexLogging
 
 import scala.util.{Left, Right}
 
-/**
-  *
-  */
+/** Balance Difference Validation object. */
 object BalanceDiffValidation extends ScorexLogging with Instrumented {
-
+  /** Application Method for Balance Diff Validation.
+    * @param s The input SnapshotStateReader.
+    * @param fs The Functionality Settings.
+    * @param d The Diff object.
+    * @tparam T The Parametrized Type descendant of [[Transaction]].
+    * @return Returns Either a Diff (case Success) or an AccountBalanceError (case Failure).
+    */
   def apply[T <: Transaction](s: SnapshotStateReader, fs: FunctionalitySettings)(d: Diff): Either[AccountBalanceError, Diff] = {
 
     val changedAccounts = d.portfolios.keySet
@@ -46,7 +50,15 @@ object BalanceDiffValidation extends ScorexLogging with Instrumented {
     }
   }
 
+  /** Gets the Lease Lunes Information. The returning type is a Tuple for a Portfolio Balance and Lease Information.
+    * @param p The input Portfolio.
+    * @return Returns the Tuple(balance, leaseInfo).
+    */
   private def leaseLunesInfo(p: Portfolio): (Long, LeaseInfo) = (p.balance, p.leaseInfo)
 
+  /** Gets the Negative Assets Information. The returning type is a Map for ByteStr into a Long.
+    * @param p The input Portfolio.
+    * @return Returns the Map for ByteStr into Long.
+    */
   private def negativeAssetsInfo(p: Portfolio): Map[ByteStr, Long] = p.assets.filter(_._2 < 0)
 }

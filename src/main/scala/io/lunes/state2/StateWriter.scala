@@ -7,32 +7,26 @@ import io.lunes.metrics.Instrumented
 import io.lunes.state2.reader.StateReaderImpl
 import scorex.utils.ScorexLogging
 
-/**
-  *
-  */
+/** Provides an interface for State Writers.  */
 trait StateWriter {
-  /**
-    *
-    * @param blockDiff
+  /** Applies a BlockDiff to the State.
+    * @param blockDiff the input BlockDiff.
     */
   def applyBlockDiff(blockDiff: BlockDiff): Unit
 
-  /**
-    *
+  /** Clears the State.
     */
   def clear(): Unit
 }
 
-/**
-  *
-  * @param p
-  * @param synchronizationToken
+/** Implements State Writer.
+  * @param p The State Storage database.
+  * @param synchronizationToken The Synchronization Token.
   */
 class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteLock)
   extends StateReaderImpl(p, synchronizationToken) with StateWriter with ScorexLogging with Instrumented {
-  /**
-    *
-    * @param blockDiff
+  /** Applies a BlockDiff to the State.
+    * @param blockDiff The input BlockDiff.
     */
   override def applyBlockDiff(blockDiff: BlockDiff): Unit = write("applyBlockDiff") { implicit l =>
     val oldHeight = sp().getHeight
@@ -58,8 +52,7 @@ class StateWriterImpl(p: StateStorage, synchronizationToken: ReentrantReadWriteL
     log.debug(s"BlockDiff commit complete. Persisted height = $newHeight")
   }
 
-  /**
-    *
+  /** Clear the State.
     */
   override def clear(): Unit = write("clear") { implicit l =>
     val b = sp().createBatch()

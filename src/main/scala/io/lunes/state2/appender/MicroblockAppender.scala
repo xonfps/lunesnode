@@ -17,19 +17,16 @@ import scorex.utils.ScorexLogging
 
 import scala.util.{Left, Right}
 
-/**
-  *
-  */
+/** Microblock Appender object.*/
 object MicroblockAppender extends ScorexLogging with Instrumented {
-  /**
-    *
-    * @param checkpoint
-    * @param history
-    * @param blockchainUpdater
-    * @param utxStorage
-    * @param scheduler
-    * @param microBlock
-    * @return
+  /** Application of object for appending blocks.
+    * @param checkpoint The Checkpoint Service.
+    * @param history The History object.
+    * @param blockchainUpdater The Blockchain Updater object.
+    * @param utxStorage The Transaction Pool Storage.
+    * @param scheduler The Scheduler object.
+    * @param microBlock The MicroBlock input.
+    * @return Returns a ValidationError case it Fails.
     */
   def apply(checkpoint: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater, utxStorage: UtxPool,
             scheduler: Scheduler)
@@ -39,18 +36,17 @@ object MicroblockAppender extends ScorexLogging with Instrumented {
     _ <- blockchainUpdater.processMicroBlock(microBlock)
   } yield utxStorage.removeAll(microBlock.transactionData))).executeOn(scheduler)
 
-  /**
-    *
-    * @param checkpoint
-    * @param history
-    * @param blockchainUpdater
-    * @param utxStorage
-    * @param allChannels
-    * @param peerDatabase
-    * @param scheduler
-    * @param ch
-    * @param md
-    * @return
+  /** Alternative application of objec appending blocks.
+    * @param checkpoint The Checkpoint Service.
+    * @param history The History object.
+    * @param blockchainUpdater The Blockchain Updater.
+    * @param utxStorage The Transaction Pool Storage.
+    * @param allChannels The Group of all Channels.
+    * @param peerDatabase The Peer Database object.
+    * @param scheduler The Scheduler object.
+    * @param ch The input Channel.
+    * @param md The MicroblockData.
+    * @return Returns a Taks to Unit.
     */
   def apply(checkpoint: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater, utxStorage: UtxPool,
             allChannels: ChannelGroup, peerDatabase: PeerDatabase, scheduler: Scheduler)(ch: Channel, md: MicroblockData): Task[Unit] = {

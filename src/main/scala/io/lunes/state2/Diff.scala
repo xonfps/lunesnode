@@ -1,9 +1,9 @@
 package io.lunes.state2
 
-import cats.Monoid
-import cats.implicits._
 import scorex.account.{Address, Alias}
 import io.lunes.transaction.Transaction
+
+import scala.annotation.tailrec
 
 /** Class for holding Snapshot data.
   * @constructor Creates a New Snapshot Object.
@@ -91,7 +91,6 @@ case class Diff(transactions: Map[ByteStr, (Int, Transaction, Set[Address])],
 
 /** case class Diff Companion Object */
 object Diff {
-  //TODO: tailrec
   /** Diff Class Alternative Constructor.
     * @param height Record Height.
     * @param tx Inputs Transaction.
@@ -102,7 +101,7 @@ object Diff {
     * @param leaseState Maps ID into Boolean for LeaseState Check.
     * @return Returns the Created Object.
     */
-  //TODO: tailrec
+  @tailrec
   def apply(height: Int, tx: Transaction,
             portfolios: Map[Address, Portfolio] = Map.empty,
             assetInfos: Map[ByteStr, AssetInfo] = Map.empty,

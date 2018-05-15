@@ -10,11 +10,16 @@ import io.lunes.transaction.{PaymentTransaction, ValidationError}
 
 import scala.util.{Left, Right}
 
-/**
-  *
-  */
+/** Payment Transaction Diff Object.*/
 object PaymentTransactionDiff {
-
+  /** The Application method for Payment Transaction Diff.
+    * @param stateReader The Snapshot State Reader object.
+    * @param height The height of the Transaction.
+    * @param settings the Functional Settings.
+    * @param blockTime The Block's Time.
+    * @param tx The PaymentTransaction.
+    * @return Returns Either a Diff (case Success) or a ValidationError (case Failure).
+    */
   def apply(stateReader: SnapshotStateReader, height: Int, settings: FunctionalitySettings, blockTime: Long)
            (tx: PaymentTransaction): Either[ValidationError, Diff] = {
 

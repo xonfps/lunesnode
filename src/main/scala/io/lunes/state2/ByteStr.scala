@@ -5,9 +5,8 @@ import scorex.crypto.encode.Base58
 
 import scala.util.Try
 
-/**
-  *
-  * @param arr
+/** Case Class for a String of Bytes. It has a typical usage as an Account ID.
+  * @param arr The data array of Bytes.
   */
 case class ByteStr(arr: Array[Byte]) {
   override def equals(a: Any): Boolean = a match {
@@ -24,9 +23,7 @@ case class ByteStr(arr: Array[Byte]) {
   override lazy val toString: String = base58
 }
 
-/**
-  *
-  */
+/** Companion Object for ByteStr Class.*/
 object ByteStr {
   def decodeBase58(s: String): Try[ByteStr] = Base58.decode(s).map(ByteStr(_))
   val empty : ByteStr = ByteStr(Array.emptyByteArray)

@@ -9,11 +9,15 @@ import io.lunes.transaction.ValidationError.{GenericError, Validation}
 import io.lunes.transaction.assets.MassTransferTransaction
 import io.lunes.transaction.assets.MassTransferTransaction.ParsedTransfer
 
-/**
-  *
-  */
+/** Mass Transfer Transaction Difference object. */
 object MassTransferTransactionDiff {
-
+  /** The Application method for the Mass Transfer Transaction Difference.
+    * @param state The Snapshot State Reader object.
+    * @param blockTime The Block's Time.
+    * @param height The Height of the Block.
+    * @param tx The MassTransferTransaction.
+    * @return Returns Either a Diff (case Success) or a ValidationError (case Failure).
+    */
   def apply(state: SnapshotStateReader, blockTime: Long, height: Int)(tx: MassTransferTransaction): Either[ValidationError, Diff] = {
     def parseTransfer(xfer: ParsedTransfer): Validation[(Map[Address, Portfolio], Long)] = {
       for {

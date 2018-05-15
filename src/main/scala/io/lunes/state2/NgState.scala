@@ -37,7 +37,7 @@ class NgState(val base: Block, val baseBlockDiff: BlockDiff, val acceptedFeature
     */
   def microBlockIds: Seq[BlockId] = micros.map(_.totalResBlockSig).toList
 
-  //TODO: Tailrec
+  //TODO: Transform in tailrec
   private def diffFor(totalResBlockSig: BlockId): BlockDiff =
     if (totalResBlockSig == base.uniqueId)
       baseBlockDiff

@@ -11,14 +11,14 @@ import io.lunes.transaction.{ValidationError, _}
 
 import scala.util.{Failure, Success, Try}
 
-/**
-  *
-  * @param sender
-  * @param assetId
-  * @param amount
-  * @param fee
-  * @param timestamp
-  * @param signature
+/**  Case Class for a BurnTransaction.
+  * @constructor Creates a new BurnTransaction.
+  * @param sender The Public Key for the Account.
+  * @param assetId The input Asset ID.
+  * @param amount The amount of the Transaction.
+  * @param fee The Fee.
+  * @param timestamp The Timestamp.
+  * @param signature The Account Signature.
   */
 case class BurnTransaction private(sender: PublicKeyAccount,
                                    assetId: ByteStr,
@@ -51,24 +51,20 @@ case class BurnTransaction private(sender: PublicKeyAccount,
 
 }
 
-/**
-  *
-  */
+/** The BurnTransaction Companion object.*/
 object BurnTransaction {
-  /**
-    *
-    * @param bytes
-    * @return
+  /** Parses input Raw data and transforms it into a BurnTransaction.
+    * @param bytes The input Raw data.
+    * @return Returns a BurnTransaction.
     */
   def parseBytes(bytes: Array[Byte]): Try[BurnTransaction] = Try {
     require(bytes.head == TransactionType.BurnTransaction.id)
     parseTail(bytes.tail).get
   }
 
-  /**
-    *
-    * @param bytes
-    * @return
+  /** Parses input Raw data and transforms it into a BurnTransaction from a complex list.
+    * @param bytes The input Raw data.
+    * @return Returns a BurnTransaction.
     */
   def parseTail(bytes: Array[Byte]): Try[BurnTransaction] = Try {
     val sender = PublicKeyAccount(bytes.slice(0, KeyLength))
@@ -84,15 +80,15 @@ object BurnTransaction {
       .fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
-  /**
-    *
-    * @param sender
-    * @param assetId
-    * @param quantity
-    * @param fee
-    * @param timestamp
-    * @param signature
-    * @return
+  /** Factory method for BurnTransaction objects.
+	  * @constructor Creates a new BurnTransaction.
+    * @param sender The Public Key for the Account.
+    * @param assetId The Asset ID.
+    * @param quantity The Quantity of the Transaction.
+    * @param fee The Fee for the transaction.
+    * @param timestamp The Timestamp.
+    * @param signature The Account Signature.
+    * @return Returns Either a BurnTransaction (case Success) or a ValidationError (case Failure).
     */
   def create(sender: PublicKeyAccount,
              assetId: ByteStr,
@@ -108,14 +104,14 @@ object BurnTransaction {
       Right(BurnTransaction(sender, assetId, quantity, fee, timestamp, signature))
     }
 
-  /**
-    *
-    * @param sender
-    * @param assetId
-    * @param quantity
-    * @param fee
-    * @param timestamp
-    * @return
+  /** Alternative Factory method for BurnTransaction objects.
+    * @constructor Creates a new BurnTransaction without the Signature.
+    * @param sender The Public Key for the Account.
+    * @param assetId The Asset ID.
+    * @param quantity The Quantity of the Transaction.
+    * @param fee The Fee for the transaction.
+    * @param timestamp The Timestamp.
+    * @return Returns Either a BurnTransaction (case Success) or a ValidationError (case Failure).
     */
   def create(sender: PrivateKeyAccount,
              assetId: ByteStr,

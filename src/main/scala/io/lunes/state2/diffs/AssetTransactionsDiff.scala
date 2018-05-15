@@ -9,11 +9,13 @@ import io.lunes.transaction.{AssetId, SignedTransaction, ValidationError}
 
 import scala.util.{Left, Right}
 
-/**
-  *
-  */
+/** Asset Transation Diff object.*/
 object AssetTransactionsDiff {
-
+  /** Issues a Diff.
+    * @param height Height of the block.
+    * @param tx The issue Transaction.
+    * @return Returns Either a Diff (case Success) or a ValidationError (case Failure).
+    */
   def issue(height: Int)(tx: IssueTransaction): Either[ValidationError, Diff] = {
     val info = AssetInfo(
       isReissuable = tx.reissuable,
@@ -27,6 +29,14 @@ object AssetTransactionsDiff {
       assetInfos = Map(tx.assetId() -> info)))
   }
 
+  /** Reissue a Diff.
+    * @param state Inputs a Snapshot State Reader.
+    * @param settings The Funcionality Settings.
+    * @param blockTime The block time.
+    * @param height The Height of the block.
+    * @param tx The Reissue Transaction.
+    * @return Returns Either a Diff (case Success) or a ValidationError (case Failure).
+    */
   def reissue(state: SnapshotStateReader, settings: FunctionalitySettings, blockTime: Long, height: Int)(tx: ReissueTransaction): Either[ValidationError, Diff] = {
     findReferencedAsset(tx, state, tx.assetId).flatMap(itx => {
       val oldInfo = state.assetInfo(tx.assetId).get
@@ -47,6 +57,12 @@ object AssetTransactionsDiff {
     })
   }
 
+	/** Generates a Diff given a [[BurnTransaction]].
+		* @param state The SnapshotStateReader.
+		* @param height The Blockheight.
+		* @param tx The input BurnTransaction.
+		* @return Returns Either a Diff (case Success) or a ValidationError (case Failure).
+		*/
   def burn(state: SnapshotStateReader, height: Int)(tx: BurnTransaction): Either[ValidationError, Diff] = {
     findReferencedAsset(tx, state, tx.assetId).map(itx => {
       Diff(height = height,

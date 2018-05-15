@@ -11,13 +11,25 @@ import io.lunes.transaction.assets._
 import io.lunes.transaction.assets.exchange.ExchangeTransaction
 import io.lunes.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 
-/**
-  *
-  */
+/** Transaction Differ object.*/
 object TransactionDiffer {
 
+  /** Case Class for a Transaction Validation Error.
+    * @param cause The Error Cause.
+    * @param tx The input Transaction.
+    */
   case class TransactionValidationError(cause: ValidationError, tx: Transaction) extends ValidationError
 
+  /** The Application method for the Transaction Differ object.
+    * @param settings The Functional Settings.
+    * @param prevBlockTimestamp The Previous Block Timestamp.
+    * @param currentBlockTimestamp The Current Block Timestamp.
+    * @param currentBlockHeight The Current Block Height.
+    * @param s The Snapshot State Reader.
+    * @param fp The Feature Provider.
+    * @param tx The Transaction object.
+    * @return Returns Either a Diff (case Success) or a ValidationError (case Failure).
+    */
   def apply(settings: FunctionalitySettings, prevBlockTimestamp: Option[Long], currentBlockTimestamp: Long, currentBlockHeight: Int)
            (s: SnapshotStateReader, fp: FeatureProvider, tx: Transaction): Either[ValidationError, Diff] = {
     for {

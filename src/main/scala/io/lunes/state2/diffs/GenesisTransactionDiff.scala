@@ -6,10 +6,13 @@ import io.lunes.transaction.{GenesisTransaction, ValidationError}
 
 import scala.util.{Left, Right}
 
-/**
-  *
-  */
+/** Generation Transaction Difference object. */
 object GenesisTransactionDiff {
+  /** The Application method for generating a Diff object.
+    * @param height The Height of the Transaction.
+    * @param tx The GenesisTransaction.
+    * @return Returns Either a Diff (case Success) or a ValidationError (case Failure).
+    */
   def apply(height: Int)(tx: GenesisTransaction): Either[ValidationError, Diff] = {
     if (height != 1) Left(GenericError("GenesisTransaction cannot appear in non-initial block"))
     else

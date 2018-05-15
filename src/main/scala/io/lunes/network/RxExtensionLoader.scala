@@ -18,28 +18,25 @@ import scorex.utils.ScorexLogging
 
 import scala.concurrent.duration._
 
-/**
-  *
-  */
+/** The RxExtension Loader object. */
 object RxExtensionLoader extends ScorexLogging {
 
-  /** 
-    */
+  /** Asserts a type for Apply */
   type ApplyExtensionResult = Either[ValidationError, Option[BlockchainScore]]
 
-  /** 
-    * @param maxRollback
-    * @param syncTimeOut
-    * @param history
-    * @param peerDatabase
-    * @param invalidBlocks
-    * @param blocks
-    * @param signatures
-    * @param syncWithChannelClosed
-    * @param scheduler
-    * @param timeoutSubject
-    * @param extensionApplier
-    * @return
+  /** Factory for a Tuple of Observable[(Channel, Block)], Coeval[State], RxExtensionLoaderShutdownHook.
+    * @param maxRollback Maximum Rollback.
+    * @param syncTimeOut Synchronization Timeout
+    * @param history The NgHistory object.
+    * @param peerDatabase PeerDatabase input.
+    * @param invalidBlocks The Ivalid Block Storage.
+    * @param blocks Inputs an Observable Tuple(Channel, Block).
+    * @param signatures Inputs an Observable Tuple(Channel, Block).
+    * @param syncWithChannelClosed Inputs an Observable of ChannelCloseAndSyncWith.
+    * @param scheduler The Scheduler Service object.
+    * @param timeoutSubject Inputs and Subject for Channel and Channel.
+    * @param extensionApplier Inputs a Map for Tuple(Channel, ExtensionBlock) into a Task of ApplyExtensionResult.
+    * @return Returns a Tuple(Observable[(Channel, Block)], Coeval[State], RxExtensionLoaderShutdownHook)
     */
   def apply(maxRollback: Int, syncTimeOut: FiniteDuration,
             history: NgHistory,
@@ -285,95 +282,85 @@ object RxExtensionLoader extends ScorexLogging {
     (simpleBlocks, Coeval.eval(s), RxExtensionLoaderShutdownHook(extensions, simpleBlocks))
   }
 
-  /** 
-    */
+  /** Defines a LoaderState interface. */
   sealed trait LoaderState
 
-  /** 
-    */
+  /**  The LoaderState */
   object LoaderState {
 
-    /**
-      *
-      */
+    /** Defines a derived interface for LoaderState*/
     sealed trait WithPeer extends LoaderState {
-      /**
-        *
-        * @return
+      /** Defines an interface to retrieve a Netty Channel
+        * @return Returns the Channel.
         */
       def channel: Channel
 
-      /**
-        *
-        * @return
+      /** Defines an interface for a Timeout Unit.
+        * @return Returns a Cancelable Future for Unit.
         */
       def timeout: CancelableFuture[Unit]
     }
 
-    /**
-      *
-      */
+    /** Defines a case object derived from LoadState */
     case object Idle extends LoaderState
 
-    /**
-      *
-      * @param channel
-      * @param known
-      * @param timeout
+    /** Case Class to holds data for Expected Signatures.
+      * @param channel Inputs the Netty Channel.
+      * @param known Inputs a Sequence of Block IDs.
+      * @param timeout Cancelable Future Unit.
       */
     case class ExpectingSignatures(channel: Channel, known: Seq[BlockId], timeout: CancelableFuture[Unit]) extends WithPeer {
       override def toString: String = s"ExpectingSignatures(channel=${id(channel)})"
     }
 
-    /**
-      *
-      * @param channel
-      * @param allBlocks
-      * @param expected
-      * @param received
-      * @param timeout
+    /** Case Class for holding data for Expected Blocks.
+      * @param channel Inputs the Netty Channel.
+      * @param allBlocks Inputs a Sequence of all Block IDs.
+      * @param expected Inputs a Set of the expected Block IDs.
+      * @param received Inputs a Set of the received Block IDs.
+      * @param timeout Cancelable Future Unit.
       */
     case class ExpectingBlocks(channel: Channel, allBlocks: Seq[BlockId],
                                expected: Set[BlockId],
                                received: Set[Block],
                                timeout: CancelableFuture[Unit]) extends WithPeer {
-      /**
-        *
-        * @return
-        */
       override def toString: String = s"ExpectingBlocks(channel=${id(channel)}, totalBlocks=${allBlocks.size}, " +
         s"received=${received.size}, expected=${if (expected.size == 1) expected.head.trim else expected.size})"
     }
 
   }
 
-  /** 
-    * @param extensionChannel
-    * @param simpleBlocksChannel
+  /** Reactive Extension Loader Shutdown Hook case class.
+    * @constructor Creates a new Reactive Extension Shutdown Hook.
+    * @param extensionChannel Inputs a Observer Tuple(Channel, ExtensionBlocks).
+    * @param simpleBlocksChannel Inpts a Observer Tuple for (Channel, Block).
     */
   case class RxExtensionLoaderShutdownHook(extensionChannel: Observer[(Channel, ExtensionBlocks)],
                                            simpleBlocksChannel: Observer[(Channel, Block)]) {
-    /**
-      *
-      */
+    /** Shutdown Extensions and Blocks.*/
     def shutdown(): Unit = {
       extensionChannel.onComplete()
       simpleBlocksChannel.onComplete()
     }
   }
 
-  /** 
-    * @param blocks
+  /** Case Class for Blocks Extensions.
+    * @constructor Creates a new extension block.
+    * @param blocks Inputs a sequence of [[Block]].
     */
   case class ExtensionBlocks(blocks: Seq[Block]) {
     override def toString: String = s"ExtensionBlocks(${formatSignatures(blocks.map(_.uniqueId))}"
   }
 
-  /** 
-    * @param loaderState
-    * @param applierState
+  /** Case Class for State definitions.
+    * @param loaderState Inputs a LoaderState.
+    * @param applierState Inputs a ApplierState.
     */
   case class State(loaderState: LoaderState, applierState: ApplierState) {
+    /** Gets a State from a [[LoaderState]].
+      * @param newLoaderState Inputs the LoaderState.
+      * @return Returns the State.
+      */
     def withLoaderState(newLoaderState: LoaderState): State = {
       loaderState match {
         case wp: WithPeer => wp.timeout.cancel()
@@ -382,39 +369,34 @@ object RxExtensionLoader extends ScorexLogging {
       State(newLoaderState, applierState)
     }
 
+    /** Gets a State from a Idle Loader.
+      * @return Returns the State.
+      */
     def withIdleLoader: State = withLoaderState(LoaderState.Idle)
   }
 
-  /** 
-    */
+  /** Defines a ApplierState interface. */
   sealed trait ApplierState
 
-  /** 
-    */
+  /** Creates the ApplierState object for static calls. */
   object ApplierState {
 
-    /**
-      *
-      */
+    /** Case object for an Idle State.*/
     case object Idle extends ApplierState
 
-    /**
-      *
-      * @param ch
-      * @param ext
+    /** Case classe for buffer.
+      * @constructor Creates a Buffer for Netty Channel and Extension Blocks.
+      * @param ch The input Channel.
+      * @param ext The Extension Blocks.
       */
     case class Buffer(ch: Channel, ext: ExtensionBlocks) {
-      /**
-        *
-        * @return
-        */
+
       override def toString: String = s"Buffer($ext from ${id(ch)})"
     }
 
-    /**
-      *
-      * @param buf
-      * @param applying
+    /** Case Class for Applying State.
+      * @param buf Inputs an Option for Buffer.
+      * @param applying The Extension Blocks for Applying.
       */
     case class Applying(buf: Option[Buffer], applying: ExtensionBlocks) extends ApplierState
 

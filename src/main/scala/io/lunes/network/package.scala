@@ -20,6 +20,8 @@ import scorex.utils.ScorexLogging
 
 import scala.concurrent.duration._
 
+import scala.annotation.tailrec
+
 /**
   *
   */
@@ -42,7 +44,7 @@ package object network extends ScorexLogging {
       * @param f
       * @return
       */
-    //TODO: Tailirec
+    @tailrec
     def scheduleWithFixedDelay(initialDelay: FiniteDuration, delay: FiniteDuration)(f: => Unit): ScheduledFuture[_] =
       e.scheduleWithFixedDelay((() => f): Runnable, initialDelay.toNanos, delay.toNanos, NANOSECONDS)
 
@@ -53,7 +55,7 @@ package object network extends ScorexLogging {
       * @tparam A
       * @return
       */
-    //TODO: Tailrec
+    @tailrec
     def schedule[A](delay: FiniteDuration)(f: => A): ScheduledFuture[A] =
       e.schedule((() => f): Callable[A], delay.length, delay.unit)
   }
@@ -70,7 +72,7 @@ package object network extends ScorexLogging {
     * @param ctx
     * @return
     */
-  //TODO: TailRec
+  @tailrec
   def id(ctx: ChannelHandlerContext): String = id(ctx.channel())
 
   /**
@@ -108,6 +110,7 @@ package object network extends ScorexLogging {
       *
       * @return
       */
+    //TODO: Transform in Tailrec
     def remoteAddress: Option[InetSocketAddress] = ctx.channel() match {
       case x: NioSocketChannel => Option(x.remoteAddress())
       case x =>

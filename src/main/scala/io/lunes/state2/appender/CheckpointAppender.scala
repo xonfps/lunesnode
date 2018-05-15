@@ -11,10 +11,21 @@ import monix.execution.Scheduler
 import io.lunes.transaction.{BlockchainUpdater, CheckpointService, History, ValidationError}
 import scorex.utils.ScorexLogging
 
-/**
-  *
+/** Checkpoint Appender Object.
   */
 object CheckpointAppender extends ScorexLogging {
+  /**
+    * @param checkpointService Inputs Checkpoint Service object.
+    * @param history Inputs the History object.
+    * @param blockchainUpdater The Blockchain Updater.
+    * @param peerDatabase Inputs a PeerDatabase.
+    * @param miner Inputs a Miner object.
+    * @param allChannels Inputs All Channels.
+    * @param scheduler Inputs a Scheduler.
+    * @param maybeChannel Provides an Option for Channel.
+    * @param c Inputs a Checkpoint.
+    * @return Returns a Task for Either an Option for BigInt (case Success) or ValidationError (case Failure).
+    */
   def apply(checkpointService: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater,
             peerDatabase: PeerDatabase, miner: Miner, allChannels: ChannelGroup, scheduler: Scheduler
            )(maybeChannel: Option[Channel], c: Checkpoint): Task[Either[ValidationError, Option[BigInt]]] = {
@@ -32,6 +43,11 @@ object CheckpointAppender extends ScorexLogging {
     }
   }
 
+  /** Makes Blockchain Compliant with the given parameters.
+    * @param history Inputs the History.
+    * @param blockchainUpdater Inputs the Blockchain Updater object.
+    * @param checkpoint Inputs the Checkpoint object.
+    */
   private def makeBlockchainCompliantWith(history: History, blockchainUpdater: BlockchainUpdater)(checkpoint: Checkpoint): Unit = {
     val existingItems = checkpoint.items.filter {
       checkpoint => history.blockAt(checkpoint.height).isDefined

@@ -10,11 +10,14 @@ import io.lunes.transaction.assets.exchange.ExchangeTransaction
 
 import scala.util.Right
 
-/**
-  *
-  */
+/** Exchange Transaction Diff object. */
 object ExchangeTransactionDiff {
-
+  /** The Application method for the Exchange Transaction Difference.
+    * @param s The SnapshotReader.
+    * @param height The Height of the Exchange Transaction.
+    * @param tx The Exchange Transaction object.
+    * @return Returns Either a Diff (case Success) or a ValidationError (case Failure).
+    */
   def apply(s: SnapshotStateReader, height: Int)(tx: ExchangeTransaction): Either[ValidationError, Diff] = {
     val matcher = tx.buyOrder.matcherPublicKey.toAddress
     val buyer = tx.buyOrder.senderPublicKey.toAddress
@@ -61,7 +64,11 @@ object ExchangeTransactionDiff {
     }
   }
 
-
+	/** Check for Enough Transaction Volume.
+		* @param exTrans The Exchange Transaction object.
+		* @param s The Snapshot State Reader.
+		* @return Returns Either an ExchangeTransaction (case Success) or a ValidationError (case Failure).
+		*/
   private def enoughVolume(exTrans: ExchangeTransaction, s: SnapshotStateReader): Either[ValidationError, ExchangeTransaction] = {
     val filledBuy = s.filledVolumeAndFee(ByteStr(exTrans.buyOrder.id()))
     val filledSell = s.filledVolumeAndFee(ByteStr(exTrans.sellOrder.id()))

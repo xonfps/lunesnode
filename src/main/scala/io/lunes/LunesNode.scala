@@ -321,7 +321,7 @@ object LunesNode extends ScorexLogging {
       case None =>
         log.error("No configuration file was provided!")
         forceStopApplication()
-        //TODO:
+        //TODO: Unknow item left to do
         ConfigFactory.load()
       // application config needs to be resolved wrt both system properties *and* user-supplied config.
       case Some(file) =>

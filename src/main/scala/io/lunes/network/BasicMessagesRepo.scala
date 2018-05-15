@@ -141,15 +141,14 @@ trait SignaturesSeqSpec[A <: AnyRef] extends MessageSpec[A] {
 
 /** Object to get a Signature Specifications. */
 object GetSignaturesSpec extends SignaturesSeqSpec[GetSignatures] {
-  /**
-    * @param signatures
+  /** Wrappes a Sequence of signatures inputed as Raw data.
+    * @param signatures The Sequence of Raw Signatures.
     * @return
     */
   override def wrap(signatures: Seq[Array[Byte]]): GetSignatures = GetSignatures(signatures.map(ByteStr(_)))
 
-  /**
-    *
-    * @param v
+  /** Unwrappes Signatures to Raw Data.
+    * @param v Inputs a [[GetSignatures]] object to unwrap.
     * @return
     */
   override def unwrap(v: GetSignatures): Seq[Array[MessageCode]] = v.signatures.map(_.arr)
@@ -157,46 +156,38 @@ object GetSignaturesSpec extends SignaturesSeqSpec[GetSignatures] {
   override val messageCode: MessageCode = 20: Byte
 }
 
-/**
-  *
-  */
+/** Signature Specifications object. */
 object SignaturesSpec extends SignaturesSeqSpec[Signatures] {
-  /**
-    *
-    * @param signatures
-    * @return
+  /** Wrappes a Sequence of signatures inputed as Raw data.
+    * @param signatures The Sequence of Raw Signatures.
+    * @return Returns the [[Signatures]] object for the wrapped data.
     */
   override def wrap(signatures: Seq[Array[Byte]]): Signatures = Signatures(signatures.map(ByteStr(_)))
 
-  /**
-    *
-    * @param v
-    * @return
+  /** Unwrappes a inputed [[Signatures]] object as Raw data.
+    * @param v The signatures object.
+    * @return Returns a Sequence the Raw unwrapped data
     */
   override def unwrap(v: Signatures): Seq[Array[MessageCode]] = v.signatures.map(_.arr)
 
-  override val messageCode: MessageCode = 21: Byte
+  override val messageCode: MessageCode = 21: Byte // Possible unnecessary Type Cast.
 }
 
-/**
-  *
-  */
+/** Get Block Specifications object.*/
 object GetBlockSpec extends MessageSpec[GetBlock] {
   override val messageCode: MessageCode = 22: Byte
 
   override val maxLength: Int = TransactionParser.SignatureLength
 
-  /**
-    *
-    * @param signature
-    * @return
+  /** Serializes the data given a inputed [[GetBlock]] signature object.
+    * @param signature The GetBlock input.
+    * @return Returns the serialized Raw data.
     */
   override def serializeData(signature: GetBlock): Array[Byte] = signature.signature.arr
 
-  /**
-    *
-    * @param bytes
-    * @return
+  /** Deserializes Raw data to [[GetBlock]] object.
+    * @param bytes The input Raw data.
+    * @return Returns a Try for a GetBlock object.
     */
   override def deserializeData(bytes: Array[Byte]): Try[GetBlock] = Try {
     require(bytes.length == maxLength, "Data does not match length")
@@ -204,40 +195,33 @@ object GetBlockSpec extends MessageSpec[GetBlock] {
   }
 }
 
-/**
-  *
-  */
+/** The Blcok Specification object. */
 object BlockSpec extends MessageSpec[Block] {
   override val messageCode: MessageCode = 23: Byte
 
   override val maxLength: Int = 271 + TransactionSpec.maxLength * Block.MaxTransactionsPerBlockVer3
 
-  /**
-    *
-    * @param block
-    * @return
+  /** Serializes data for a given [[Block]] object.
+    * @param block The input Block.
+    * @return Returns the Raw serialized data.
     */
   override def serializeData(block: Block): Array[Byte] = block.bytes()
 
-  /**
-    *
-    * @param bytes
-    * @return
+  /** Deserializes Raw data into a [[Block]] object.
+    * @param bytes The input Raw data.
+    * @return Returns a Try of Block object.
     */
   override def deserializeData(bytes: Array[Byte]): Try[Block] = Block.parseBytes(bytes)
 }
 
-/**
-  *
-  */
+/** The ScoreSpec object. */
 object ScoreSpec extends MessageSpec[History.BlockchainScore] {
   override val messageCode: MessageCode = 24: Byte
 
   override val maxLength: Int = 64 // allows representing scores as high as 6.6E153
-  /**
-    *
-    * @param score
-    * @return
+  /** Serializes data given a [[History.BlockchainScore]] object.
+    * @param score The BlockchainScore input.
+    * @return Returns the serialized Raw data.
     */
   override def serializeData(score: History.BlockchainScore): Array[Byte] = {
     val scoreBytes = score.toByteArray
@@ -246,19 +230,16 @@ object ScoreSpec extends MessageSpec[History.BlockchainScore] {
     bb.array()
   }
 
-  /**
-    *
-    * @param bytes
-    * @return
+  /** Deserializes Raw data into a [[History.BlockchainScore]] object.
+    * @param bytes The input Raw data.
+    * @return Returns a Try for the BlockchainScore object.
     */
   override def deserializeData(bytes: Array[Byte]): Try[History.BlockchainScore] = Try {
     BigInt(1, bytes)
   }
 }
 
-/**
-  *
-  */
+/** Checkpoint Specifications object.*/
 object CheckpointSpec extends MessageSpec[Checkpoint] {
   override val messageCode: MessageCode = 100: Byte
 
@@ -266,18 +247,16 @@ object CheckpointSpec extends MessageSpec[Checkpoint] {
 
   override val maxLength: Int = 4 + Checkpoint.MaxCheckpoints * (HeightLength + SignatureLength)
 
-  /**
-    *
-    * @param checkpoint
-    * @return
+  /** Serializes data given a [[Checkpoint]] object.
+    * @param checkpoint The Checkpoint input.
+    * @return Returns the serialized Raw data.
     */
   override def serializeData(checkpoint: Checkpoint): Array[Byte] =
     Bytes.concat(checkpoint.toSign, checkpoint.signature)
 
-  /**
-    *
-    * @param bytes
-    * @return
+  /** Deserializes Raw data into a [[Checkpoint]] object.
+    * @param bytes The input Raw data.
+    * @return Returns a Try for the Chekckpoint object.
     */
   override def deserializeData(bytes: Array[Byte]): Try[Checkpoint] = Try {
     val lengthBytes = util.Arrays.copyOfRange(bytes, 0, Ints.BYTES)
@@ -299,38 +278,34 @@ object CheckpointSpec extends MessageSpec[Checkpoint] {
   }
 }
 
-/**
-  *
-  */
+/** Transaction Specifications object. */
 object TransactionSpec extends MessageSpec[Transaction] {
   override val messageCode: MessageCode = 25: Byte
 
   // Modeled after MassTransferTransaction https://lunes.atlassian.net/wiki/spaces/MAIN/pages/386171054/Mass+Transfer+Transaction
   override val maxLength: Int = 5000
 
-  /**
-    *
-    * @param bytes
-    * @return
+  /** Deserializes Raw data into a Transaction object.
+    * @param bytes The input Raw data.
+    * @return Returns a Try for the Transaction object.
     */
   override def deserializeData(bytes: Array[Byte]): Try[Transaction] =
     TransactionParser.parseBytes(bytes)
 
-  /**
-    *
-    * @param tx
-    * @return
+  /** Serializes a [[Transaction]] object.
+    * @param tx The input Transaction.
+    * @return Returns the serialized Raw data.
     */
   override def serializeData(tx: Transaction): Array[Byte] = tx.bytes()
 }
 
+/** MicroBlockInv Specifications object. */
 object MicroBlockInvSpec extends MessageSpec[MicroBlockInv] {
   override val messageCode: MessageCode = 26: Byte
 
-  /**
-    *
-    * @param bytes
-    * @return
+  /** Deserializes Raw data to [[MicroBlockInv]] object.
+    * @param bytes The input Raw data.
+    * @return Returns a Try for a MicroBlockInv.
     */
   override def deserializeData(bytes: Array[Byte]): Try[MicroBlockInv] =
     Try(MicroBlockInv(
@@ -339,10 +314,9 @@ object MicroBlockInvSpec extends MessageSpec[MicroBlockInv] {
       prevBlockSig = ByteStr(bytes.view.slice(KeyLength + SignatureLength, KeyLength + SignatureLength * 2).toArray),
       signature = ByteStr(bytes.view.slice(KeyLength + SignatureLength * 2, KeyLength + SignatureLength * 3).toArray)))
 
-  /**
-    *
-    * @param inv
-    * @return
+  /** Serializes data given a [[MicroBlockInv]] object.
+    * @param inv The [[MicroBlockInv]] input.
+    * @return Returns the serialized Raw data.
     */
   override def serializeData(inv: MicroBlockInv): Array[Byte] = {
     inv.sender.publicKey ++ inv.totalBlockSig.arr ++ inv.prevBlockSig.arr ++ inv.signature.arr
@@ -354,18 +328,16 @@ object MicroBlockInvSpec extends MessageSpec[MicroBlockInv] {
 object MicroBlockRequestSpec extends MessageSpec[MicroBlockRequest] {
   override val messageCode: MessageCode = 27: Byte
 
-  /**
-    *
-    * @param bytes
-    * @return
+  /** Deserializes Raw data into a [[MicroBlockRequest]] object.
+    * @param bytes The input data.
+    * @return Returns a Try for a MicroBlockRequest object.
     */
   override def deserializeData(bytes: Array[Byte]): Try[MicroBlockRequest] =
     Try(MicroBlockRequest(ByteStr(bytes)))
 
-  /**
-    *
-    * @param req
-    * @return
+  /** Serializes data given a [[MicroBlockRequest]] object.
+    * @param req The MicroBlockRequest input.
+    * @return Returns the serialized Raw data.
     */
   override def serializeData(req: MicroBlockRequest): Array[Byte] = req.totalBlockSig.arr
 
@@ -375,18 +347,16 @@ object MicroBlockRequestSpec extends MessageSpec[MicroBlockRequest] {
 object MicroBlockResponseSpec extends MessageSpec[MicroBlockResponse] {
   override val messageCode: MessageCode = 28: Byte
 
-  /**
-    *
-    * @param bytes
-    * @return
+  /** Deserializes raw data into a [[MicroBlockResponse]] object.
+    * @param bytes The input Raw data object.
+    * @return Returns a Try for the MicroBlockResponse object.
     */
   override def deserializeData(bytes: Array[Byte]): Try[MicroBlockResponse] =
     MicroBlock.parseBytes(bytes).map(MicroBlockResponse)
 
-  /**
-    *
-    * @param resp
-    * @return
+  /** Serializes data given a [[MicroBlockResponse]] object.
+    * @param resp The MicroBlockResponse input.
+    * @return The Serialized Raw data.
     */
   override def serializeData(resp: MicroBlockResponse): Array[Byte] = resp.microblock.bytes()
 
@@ -402,15 +372,10 @@ object HandshakeSpec {
   val messageCode: MessageCode = 101: Byte
 }
 
-/**
-  *
-  */
+/** Basic Message Repository object.*/
 object BasicMessagesRepo {
-  /**
-    *
-    */
-  type Spec = MessageSpec[_ <: AnyRef] //??? porque este limitante superior de herança?
-  //TODO: Verificar necessidade desta limitação.
+  /** Specified Type for Message Specifications. */
+  type Spec = MessageSpec[_ <: AnyRef]
 
   val specs: Seq[Spec] = Seq(GetPeersSpec, PeersSpec, GetSignaturesSpec, SignaturesSpec,
     GetBlockSpec, BlockSpec, ScoreSpec, CheckpointSpec, TransactionSpec,

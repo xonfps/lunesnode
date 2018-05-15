@@ -8,178 +8,146 @@ import io.lunes.transaction.assets.exchange.Order
 
 import scala.util.Either
 
-/**
-  *
-  */
+/** Trait for typing a Validation Error. */
 trait ValidationError
 
-/**
-  *
-  */
+/** Companion Object for Validation Error. */
 object ValidationError {
-  /**
-    *
-     * @tparam T Type for T or a Validation Error.
+  /** Parametrized Type for Checking Validation Errors.
+    *  @tparam T Type for T or a Validation Error.
     */
   type Validation[T] = Either[ValidationError, T]
 
-  /**
-    *
-    * @param reason
+  /** Invalid Address Case Class.
+    * @param reason Creates a reason for the invalid Address Error.
     */
   case class InvalidAddress(reason: String) extends ValidationError
 
-  /**
-    *
-    * @param amount
-    * @param of
+  /** Negative Amount Case Class.
+    * @param amount Sets the Amount.
+    * @param of The error information String.
     */
   case class NegativeAmount(amount: Long, of: String) extends ValidationError
 
-  /**
-    *
+  /** Insuficient Fee Validation Error object.
     */
   case object InsufficientFee extends ValidationError
 
-  /**
-    *
+  /** Array to Big Validation Error object.
     */
   case object TooBigArray extends ValidationError
 
-  /**
-    *
+  /** Ivalid Name Validation Error object.
     */
   case object InvalidName extends ValidationError
 
-  /**
-    *
+  /** Overflow Error Validation Error object.
     */
   case object OverflowError extends ValidationError
 
-  /**
-    *
+  /** Points to itself Validation Error object.
     */
   case object ToSelf extends ValidationError
 
-  /**
-    *
+  /** Missing Sender's Private Key Validation Error object.
     */
   case object MissingSenderPrivateKey extends ValidationError
 
-  /**
-    *
+  /** Unsupported Transaction Type Validation Error object.
     */
   case object UnsupportedTransactionType extends ValidationError
 
-  /**
-    *
+  /** Invalid Request Signature  Validation Error object.
     */
   case object InvalidRequestSignature extends ValidationError
 
-  /**
-    *
-    * @param ts
+  /** Block From Future object Validation Error Case class.
+    * @param ts The Timestamp.
     */
   case class BlockFromFuture(ts: Long) extends ValidationError
 
-  /**
-    *
-    * @param s
-    * @param details
+  /** Invalid Signature Validation Error Object.
+    * @param s The signature.
+    * @param details Optional [[InvalidSignature]] details. Default is [[None]].
     */
   case class InvalidSignature(s: Signed, details: Option[InvalidSignature] = None) extends ValidationError {
     override def toString: String = s"InvalidSignature(${s.toString + " reason: " + details})"
   }
 
-  /**
-    *
-    * @param t
+  /** Transaction not Allowed Validation Error Case Class.
+    * @param t The input Transaction.
     */
   case class TransactionNotAllowedByScript(t: Transaction) extends ValidationError {
     override def toString: String = s"TransactionNotAllowedByScript($t)"
   }
 
-  /**
-    *
-    * @param m
+  /** Script Parse Error Validation Error Case Class.
+    * @param m Error details.
     */
   case class ScriptParseError(m: String) extends ValidationError
 
-  /**
-    *
-    * @param err
+  /** Generic Error Validation Error Case Class.
+    * @param err Error Details.
     */
   case class GenericError(err: String) extends ValidationError
 
-  /**
-    *
-    */
+  /** Generic Error Companion Object. */
   object GenericError {
-    /**
-      *
-      * @param ex
-      * @return
+    /** Factory Method for GenericError.
+      * @param ex Exception.
+      * @return Returns a new Generic Error from exception Throw Stack.
       */
     def apply(ex: Throwable): GenericError = new GenericError(Throwables.getStackTraceAsString(ex))
   }
 
-  /**
-    *
-    * @param txId
-    * @param txHeight
+  /** Already in State Validation Error Case Class.
+    * @param txId Transaction ID.
+    * @param txHeight Transaction Height.
     */
   case class AlreadyInTheState(txId: ByteStr, txHeight: Int) extends ValidationError
 
-  /**
-    *
-    * @param errs
+  /** Account Balance Error Case Class.
+    * @param errs A Map for Account [[Address]] into Error details Strings.
     */
   case class AccountBalanceError(errs: Map[Address, String]) extends ValidationError
 
-  /**
-    *
-    * @param a
+  /** Alias Not Exists Validation Error.
+    * @param a The Alias.
     */
   case class AliasNotExists(a: Alias) extends ValidationError
 
-  /**
-    *
-    * @param order
-    * @param err
+  /** Order Validation Error Case Class.
+    * @param order The Order.
+    * @param err The Error details.
     */
   case class OrderValidationError(order: Order, err: String) extends ValidationError
 
-  /**
-    *
-    * @param addr
+  /** Sender is Blacklisted Validation Error.
+    * @param addr Sender Address.
     */
   case class SenderIsBlacklisted(addr: String) extends ValidationError
 
-  /**
-    *
-    * @param err
+  /** Mistiming Validation Error Case Class.
+    * @param err Error details.
     */
   case class Mistiming(err: String) extends ValidationError
 
-  /**
-    *
-    * @param err
-    * @param b
+  /** Block Append Error Validation Error Case Class
+    * @param err Error Details.
+    * @param b The Unappended Block.
     */
   case class BlockAppendError(err: String, b: Block) extends ValidationError
 
-  /**
-    *
-    * @param err
-    * @param microBlock
+  /** MicroBlock Append Error Validation Error Case Class.
+    * @param err Error Details.
+    * @param microBlock The Unappended Microblock.
     */
   case class MicroBlockAppendError(err: String, microBlock: MicroBlock) extends ValidationError {
     override def toString: String = s"MicroBlockAppendError($err, ${microBlock.totalResBlockSig} ~> ${microBlock.prevResBlockSig.trim}])"
   }
 
-  /**
-    *
-    * @param err
+  /** Activation Error Validation Error Case Class.
+    * @param err Error Details.
     */
   case class ActivationError(err: String) extends ValidationError
 
