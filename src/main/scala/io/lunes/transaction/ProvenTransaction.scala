@@ -4,21 +4,17 @@ import monix.eval.Coeval
 import play.api.libs.json.{JsObject, Json}
 import scorex.crypto.encode.Base58
 
-/**
-  *
-  */
+/** Trait for Proven Transactions.*/
 trait ProvenTransaction extends Transaction with Proven {
-  /**
-    *
-    * @return
+  /** Gets a Tuple for Proof Field based on String an JSON Wrapper.
+    * @return The Tuple.
     */
   protected def proofField:(String, Json.JsValueWrapper) = "proofs" -> this.proofs.proofs.map(_.base58)
 
   val bodyBytes: Coeval[Array[Byte]]
 
-  /**
-    *
-    * @return
+  /** Returns a JSON object based on the Transaction.
+    * @return The JSON object.
     */
   protected def jsonBase(): JsObject = Json.obj("type" -> transactionType.id,
     "id" -> id().base58,

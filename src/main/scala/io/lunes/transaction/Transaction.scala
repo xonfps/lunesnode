@@ -5,9 +5,7 @@ import monix.eval.Coeval
 import scorex.serialization.{BytesSerializable, JsonSerializable}
 import io.lunes.transaction.TransactionParser.TransactionType
 
-/**
-  *
-  */
+/** Base Trait for Lunes Transactions.*/
 trait Transaction extends BytesSerializable with JsonSerializable {
   val id: Coeval[ByteStr]
 
@@ -25,14 +23,11 @@ trait Transaction extends BytesSerializable with JsonSerializable {
   override def hashCode(): Int = id().hashCode()
 }
 
-/**
-  *
-  */
+/** Companion Object. */
 object Transaction {
 
-  /**
-    *
-     * @param tx
+  /** Implicit class for Extensions to Lunes Transactions.
+     * @param tx The input Transaction.
     */
   implicit class TransactionExt(tx: Transaction) {
     def feeDiff(): Portfolio = tx.assetFee match {

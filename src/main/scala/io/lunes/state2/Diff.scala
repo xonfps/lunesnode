@@ -1,5 +1,8 @@
 package io.lunes.state2
 
+import cats.Monoid
+import cats.implicits._
+
 import scorex.account.{Address, Alias}
 import io.lunes.transaction.Transaction
 

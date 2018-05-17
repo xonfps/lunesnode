@@ -8,9 +8,7 @@ import io.lunes.transaction.ValidationError.InvalidSignature
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-/**
-  *
-  */
+/** Trait for Signed objects. */
 trait Signed extends Authorized {
   protected val signatureValid: Coeval[Boolean]
 
@@ -21,15 +19,17 @@ trait Signed extends Authorized {
   val signaturesValid: Coeval[Either[InvalidSignature, this.type]] = Coeval.evalOnce(Await.result(signaturesValidMemoized.runAsync(Signed.scheduler), Duration.Inf))
 }
 
-/**
-  *
-  */
+/** Companion Object for Signed Trait. */
 object Signed {
 
   type E[A] = Either[InvalidSignature, A]
   private implicit val scheduler: SchedulerService = Scheduler.computation(name = "sig-validator")
 
-
+  /** Validates a input Task and returns a Task for Either a input object (case Success) or InvalidSignature (case Failure).
+    * @param s The type parameter element.
+    * @tparam S The Parametrized Type descendant of Signed.
+    * @return The Task Validated.
+    */
   private def validateTask[S <: Signed](s: S): Task[E[S]] = Task {
     if (!s.signatureValid()) Task.now(Left(InvalidSignature(s, None)))
     else if (s.signedDescendants().isEmpty) Task.now(Right(s))
@@ -41,6 +41,11 @@ object Signed {
     }
   }.flatten
 
+  /** Validates a Sequence of the type parameter S an returns an Either for the Sequence of S of InvalidSignature.
+    * @param ss The input Sequence of type S.
+    * @tparam S The Parametrized Type descendant of Signed.
+    * @return Returns Either a Sequence of S (case Success) or InvalidSignature (case Failure).
+    */
   def validateOrdered[S <: Signed](ss: Seq[S]): E[Seq[S]] = Await.result(
     Task.wander(ss)(s => s.signaturesValidMemoized).map { l =>
       l.find(_.isLeft) match {
