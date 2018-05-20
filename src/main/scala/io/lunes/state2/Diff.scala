@@ -6,7 +6,6 @@ import cats.implicits._
 import scorex.account.{Address, Alias}
 import io.lunes.transaction.Transaction
 
-import scala.annotation.tailrec
 
 /** Class for holding Snapshot data.
   * @constructor Creates a New Snapshot Object.
@@ -104,7 +103,6 @@ object Diff {
     * @param leaseState Maps ID into Boolean for LeaseState Check.
     * @return Returns the Created Object.
     */
-  @tailrec
   def apply(height: Int, tx: Transaction,
             portfolios: Map[Address, Portfolio] = Map.empty,
             assetInfos: Map[ByteStr, AssetInfo] = Map.empty,
