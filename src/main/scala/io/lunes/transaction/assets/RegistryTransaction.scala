@@ -9,9 +9,9 @@ import io.lunes.utils.base58Length
 import scorex.account.{AddressOrAlias, PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.encode.Base58
 import scorex.serialization.Deser
-import io.lunes.state2.StateReader
-import io.lunes.state2.reader.SnapshotStateReader
-import scorex.account.{Address, Alias}
+//import io.lunes.state2.StateReader
+//import io.lunes.state2.reader.SnapshotStateReader
+//import scorex.account.{Address, Alias}
 //import io.swagger.annotations._
 import play.api.libs.json._
 import monix.eval.Coeval

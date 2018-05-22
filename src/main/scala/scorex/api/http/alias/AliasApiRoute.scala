@@ -1,16 +1,18 @@
 package scorex.api.http.alias
 
 import javax.ws.rs.Path
+
+import akka.http.scaladsl.server.Route
 import io.lunes.utx.UtxPool
 import io.lunes.settings.RestAPISettings
 import io.lunes.state2.StateReader
 import io.netty.channel.group.ChannelGroup
 import io.swagger.annotations._
+import play.api.libs.json.{Format, Json}
 import scorex.BroadcastRoute
 import scorex.account.Alias
 import scorex.api.http._
 import io.lunes.transaction._
-import javax.swing.text.Segment
 import scorex.utils.Time
 import scorex.wallet.Wallet
 
@@ -47,8 +49,7 @@ case class AliasApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "alias", value = "Alias", required = true, dataType = "string", paramType = "path")
   ))
-  def
-  addressOfAlias: Route = (get & path("by-alias" / Segment)) { aliasName =>
+  def addressOfAlias: Route = (get & path("by-alias" / Segment)) { aliasName =>
     val result = Alias.buildWithCurrentNetworkByte(aliasName) match {
       case Right(alias) =>
         state().resolveAlias(alias) match {
@@ -65,7 +66,7 @@ case class AliasApiRoute(settings: RestAPISettings, wallet: Wallet, utx: UtxPool
   @ApiImplicitParams(Array(
     new ApiImplicitParam(name = "address", value = "3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7", required = true, dataType = "string", paramType = "path")
   ))
-  def   aliasOfAddress: Route = (get & path("by-address" / Segment)) { addressString =>
+  def aliasOfAddress: Route = (get & path("by-address" / Segment)) { addressString =>
     val result: Either[ApiError, Seq[String]] = scorex.account.Address.fromString(addressString)
       .map(acc => state().aliasesOfAddress(acc).map(_.stringRepr))
       .left.map(ApiError.fromValidationError)
