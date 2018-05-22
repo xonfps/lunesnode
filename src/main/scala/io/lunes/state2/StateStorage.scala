@@ -317,12 +317,13 @@ class StateStorage private(db: DB, time: Time) extends SubStorage(db, "state") w
     * @param b Input an Option for a LevelDB WriteBatch.
     * @param accountIds Inputs a Map for Netty Address into a List of IDs.
     */
+  //TODO: This is where the Transactions are inputted.
   private def putAccountTransactionsIds(b: Option[WriteBatch], accountIds: Map[Address, List[ByteStr]]): Unit =
     accountIds.foreach { case (a, ids) =>
       val key = makeKey(AccountTransactionsLengthsPrefix, a.bytes.arr)
       val start = get(key).map(Ints.fromByteArray).getOrElse(0)
       val end = ids.reverse.foldLeft(start) { case (i, id) =>
-        put(makeKey(AccountTransactionIdsPrefix, accountIntKey(a, i)), id.arr, b)
+        put(makeKey(AccountTransactionIdsPrefix, accountIntKey(a, i)), id.arr, b)  // Makes a key as Acc-Prefix + address + i
         i + 1
       }
       put(key, Ints.toByteArray(end), b)

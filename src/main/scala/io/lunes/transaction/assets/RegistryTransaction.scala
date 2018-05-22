@@ -6,11 +6,15 @@ import io.lunes.state2.ByteStr
 import io.lunes.transaction.TransactionParser._
 import io.lunes.transaction.{ValidationError, _}
 import io.lunes.utils.base58Length
-import monix.eval.Coeval
-import play.api.libs.json.{JsObject, Json}
 import scorex.account.{AddressOrAlias, PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.encode.Base58
 import scorex.serialization.Deser
+import io.lunes.state2.StateReader
+import io.lunes.state2.reader.SnapshotStateReader
+import scorex.account.{Address, Alias}
+//import io.swagger.annotations._
+import play.api.libs.json._
+import monix.eval.Coeval
 
 import scala.util.{Failure, Success, Try}
 
@@ -25,6 +29,7 @@ import scala.util.{Failure, Success, Try}
   * @param fee
   * @param userdata
   * @param signature
+  * param state
   */
 case class RegistryTransaction private(assetId: Option[AssetId],
                                        sender: PublicKeyAccount,
@@ -34,7 +39,8 @@ case class RegistryTransaction private(assetId: Option[AssetId],
                                        feeAssetId: Option[AssetId],
                                        fee: Long,
                                        userdata: Array[Byte],
-                                       signature: ByteStr)
+                                       signature: ByteStr)//,
+//                                       state:StateReader)
   extends SignedTransaction with FastHashId {
   override val transactionType: TransactionType.Value = TransactionType.RegistryTransaction
 
@@ -68,6 +74,16 @@ case class RegistryTransaction private(assetId: Option[AssetId],
 
   override val bytes: Coeval[Array[Byte]] = Coeval.evalOnce(Bytes.concat(Array(transactionType.id.toByte), signature.arr, bodyBytes()))
 
+
+  /**
+    *
+    * @return
+    */
+  def registryOfAddress : Option[Address]  = Alias.fromString((userdata.map(_.toChar)).mkString) match {
+    case Right(innerAlias) => state().resolveAlias(innerAlias)
+    case Left(_) => None
+  }
+
 }
 
 /**
@@ -94,12 +110,13 @@ object RegistryTransaction {
     val timestamp = Longs.fromByteArray(bytes.slice(s1, s1 + 8))
     val amount = Longs.fromByteArray(bytes.slice(s1 + 8, s1 + 16))
     val feeAmount = Longs.fromByteArray(bytes.slice(s1 + 16, s1 + 24))
+//    val state = State
 
     (for {
       recRes <- AddressOrAlias.fromBytes(bytes, s1 + 24)
       (recipient, recipientEnd) = recRes
       (userdata, _) = Deser.parseArraySize(bytes, recipientEnd)
-      tt <- RegistryTransaction.create(assetIdOpt.map(ByteStr(_)), sender, recipient, amount, timestamp, feeAssetIdOpt.map(ByteStr(_)), feeAmount, userdata, signature)
+      tt <- RegistryTransaction.create(assetIdOpt.map(ByteStr(_)), sender, recipient, amount, timestamp, feeAssetIdOpt.map(ByteStr(_)), feeAmount, userdata, signature, state)
     } yield tt).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
@@ -124,7 +141,9 @@ object RegistryTransaction {
              feeAssetId: Option[AssetId],
              feeAmount: Long,
              userdata: Array[Byte],
-             signature: ByteStr): Either[ValidationError, RegistryTransaction] = {
+             signature: ByteStr//,
+//             state: StateReader
+            ) : Either[ValidationError, RegistryTransaction] = {
     if (userdata.length > RegistryTransaction.MaxUserdata) {
       Left(ValidationError.TooBigArray)
     } else if (amount <= 0) {
@@ -134,7 +153,7 @@ object RegistryTransaction {
     } else if (feeAmount <= 0) {
       Left(ValidationError.InsufficientFee)
     } else {
-      Right(RegistryTransaction(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, userdata, signature))
+      Right(RegistryTransaction(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, userdata, signature, state))
     }
   }
 
@@ -157,8 +176,10 @@ object RegistryTransaction {
              timestamp: Long,
              feeAssetId: Option[AssetId],
              feeAmount: Long,
-             userdata: Array[Byte]): Either[ValidationError, RegistryTransaction] = {
-    create(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, userdata, ByteStr.empty).right.map { unsigned =>
+             userdata: Array[Byte] //,
+//             state: StateReader
+            ) : Either[ValidationError, RegistryTransaction] = {
+    create(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, userdata, ByteStr.empty, state).right.map { unsigned =>
       unsigned.copy(signature = ByteStr(crypto.sign(sender, unsigned.bodyBytes())))
     }
   }
