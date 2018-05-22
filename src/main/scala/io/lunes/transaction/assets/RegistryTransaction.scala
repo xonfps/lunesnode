@@ -79,10 +79,12 @@ case class RegistryTransaction private(assetId: Option[AssetId],
     *
     * @return
     */
+/*
   def registryOfAddress : Option[Address]  = Alias.fromString((userdata.map(_.toChar)).mkString) match {
     case Right(innerAlias) => state().resolveAlias(innerAlias)
     case Left(_) => None
   }
+*/
 
 }
 
@@ -116,7 +118,7 @@ object RegistryTransaction {
       recRes <- AddressOrAlias.fromBytes(bytes, s1 + 24)
       (recipient, recipientEnd) = recRes
       (userdata, _) = Deser.parseArraySize(bytes, recipientEnd)
-      tt <- RegistryTransaction.create(assetIdOpt.map(ByteStr(_)), sender, recipient, amount, timestamp, feeAssetIdOpt.map(ByteStr(_)), feeAmount, userdata, signature, state)
+      tt <- RegistryTransaction.create(assetIdOpt.map(ByteStr(_)), sender, recipient, amount, timestamp, feeAssetIdOpt.map(ByteStr(_)), feeAmount, userdata, signature)//, state)
     } yield tt).fold(left => Failure(new Exception(left.toString)), right => Success(right))
   }.flatten
 
@@ -153,7 +155,7 @@ object RegistryTransaction {
     } else if (feeAmount <= 0) {
       Left(ValidationError.InsufficientFee)
     } else {
-      Right(RegistryTransaction(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, userdata, signature, state))
+      Right(RegistryTransaction(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, userdata, signature))//, state))
     }
   }
 
@@ -179,7 +181,7 @@ object RegistryTransaction {
              userdata: Array[Byte] //,
 //             state: StateReader
             ) : Either[ValidationError, RegistryTransaction] = {
-    create(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, userdata, ByteStr.empty, state).right.map { unsigned =>
+    create(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, userdata, ByteStr.empty/*, state*/).right.map { unsigned =>
       unsigned.copy(signature = ByteStr(crypto.sign(sender, unsigned.bodyBytes())))
     }
   }
