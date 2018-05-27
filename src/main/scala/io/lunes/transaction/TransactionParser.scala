@@ -12,7 +12,7 @@ import scala.util.{Failure, Try}
   */
 object TransactionParser {
 
-  object TransactionType extends Enumeration { // talvez case objects
+  object TransactionType extends Enumeration { // maybe case objects
     val GenesisTransaction = Value(1)
     val PaymentTransaction = Value(2)
     val IssueTransaction = Value(3)

@@ -12,6 +12,56 @@ import scorex.utils.{NTP, Time}
 
 import scala.util.Try
 
+object PrefixObject {
+
+  val prefixes = Array(
+    "state-height".getBytes(Charset),   // Height Prefix
+    "txs".getBytes(Charset),            // Transactions Prefix
+    "acc-txs-len".getBytes(Charset),    // Account Transactions Length Prefix
+    "lunes-bal".getBytes(Charset),      // Lunes Balance Prefix
+    "add-idx".getBytes(Charset),        // Address Index Prefix
+    "asset-bal".getBytes(Charset),      // Asset Balance Index
+    "address-assets".getBytes(Charset), // Address Assets Prefix
+    "assets".getBytes(Charset),         // Assets Prefix
+    "ord-fls".getBytes(Charset),        // Order Fills Prefix
+    "acc-ids".getBytes(Charset),        // Account Transaction Ids Prefix
+    "bal-snap".getBytes(Charset),       // Balance Snapshot Prefix
+    "bal-h".getBytes(Charset),          // Last Balance Height Prefix
+    "alias-address".getBytes(Charset),  // Alias To Address Prefix
+    "address-alias".getBytes(Charset),  // Address To Alias Prefix
+    "lease-state".getBytes(Charset),    // Lease State Prefix
+    "lease-idx".getBytes(Charset)       // Lease Index Prefix
+  )
+
+   def HeightPrefix = prefixes(0)
+   def TransactionsPrefix = prefixes(1)
+   def AccountTransactionsLengthsPrefix = prefixes(2)
+   def LunesBalancePrefix = prefixes(3)
+   def AddressesIndexPrefix = prefixes(4)
+   def AssetBalancePrefix = prefixes(5)
+   def AddressAssetsPrefix = prefixes(6)
+   def AssetsPrefix = prefixes(7)
+   def OrderFillsPrefix = prefixes(8)
+   def AccountTransactionIdsPrefix = prefixes(9)
+   def BalanceSnapshotsPrefix = prefixes(10)
+   def LastBalanceHeightPrefix = prefixes(11)
+   def AliasToAddressPrefix = prefixes(12)
+   def AddressToAliasPrefix = prefixes(13)
+   def LeaseStatePrefix = prefixes(14)
+   def LeaseIndexPrefix = prefixes(15)
+
+
+   def MaxAddress = "max-address"
+   def LeasesCount = "leases-count"
+
+  def Separator = ":".getBytes(Charset)
+
+}
+
+object SubStorageNames{
+  val names = Array( "state", "checkpoints", "history")
+}
+
 /** State Storage class which extends SubStorage.
   * @param db LevelDB db input object.
   * @param time [[scorex.utils.Time]] Timestamp input.

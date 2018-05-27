@@ -9,11 +9,7 @@ import io.lunes.utils.base58Length
 import scorex.account.{AddressOrAlias, PrivateKeyAccount, PublicKeyAccount}
 import scorex.crypto.encode.Base58
 import scorex.serialization.Deser
-//import io.lunes.state2.StateReader
-//import io.lunes.state2.reader.SnapshotStateReader
-//import scorex.account.{Address, Alias}
-//import io.swagger.annotations._
-import play.api.libs.json._
+import io.lunes.state2.StateStorage
 import monix.eval.Coeval
 
 import scala.util.{Failure, Success, Try}
@@ -29,7 +25,7 @@ import scala.util.{Failure, Success, Try}
   * @param fee
   * @param userdata
   * @param signature
-  * param state
+  * @param stotrage
   */
 case class RegistryTransaction private(assetId: Option[AssetId],
                                        sender: PublicKeyAccount,
@@ -40,7 +36,7 @@ case class RegistryTransaction private(assetId: Option[AssetId],
                                        fee: Long,
                                        userdata: Array[Byte],
                                        signature: ByteStr)//,
-//                                       state:StateReader)
+//                                       storage:StateStorage)
   extends SignedTransaction with FastHashId {
   override val transactionType: TransactionType.Value = TransactionType.RegistryTransaction
 
@@ -74,18 +70,6 @@ case class RegistryTransaction private(assetId: Option[AssetId],
 
   override val bytes: Coeval[Array[Byte]] = Coeval.evalOnce(Bytes.concat(Array(transactionType.id.toByte), signature.arr, bodyBytes()))
 
-
-  /**
-    *
-    * @return
-    */
-/*
-  def registryOfAddress : Option[Address]  = Alias.fromString((userdata.map(_.toChar)).mkString) match {
-    case Right(innerAlias) => state().resolveAlias(innerAlias)
-    case Left(_) => None
-  }
-*/
-
 }
 
 /**
@@ -104,7 +88,7 @@ object RegistryTransaction {
   def parseTail(bytes: Array[Byte]): Try[RegistryTransaction] = Try {
 
     val signature = ByteStr(bytes.slice(0, SignatureLength))
-    val txId = bytes(SignatureLength)
+    val txId = bytes(SignatureLength)  // 1 byte length ===> txId : Byte
     require(txId == TransactionType.RegistryTransaction.id.toByte, s"Signed tx id is not match")
     val sender = PublicKeyAccount(bytes.slice(SignatureLength + 1, SignatureLength + KeyLength + 1))
     val (assetIdOpt, s0) = Deser.parseByteArrayOption(bytes, SignatureLength + KeyLength + 1, AssetIdLength)
@@ -112,7 +96,6 @@ object RegistryTransaction {
     val timestamp = Longs.fromByteArray(bytes.slice(s1, s1 + 8))
     val amount = Longs.fromByteArray(bytes.slice(s1 + 8, s1 + 16))
     val feeAmount = Longs.fromByteArray(bytes.slice(s1 + 16, s1 + 24))
-//    val state = State
 
     (for {
       recRes <- AddressOrAlias.fromBytes(bytes, s1 + 24)
@@ -143,11 +126,37 @@ object RegistryTransaction {
              feeAssetId: Option[AssetId],
              feeAmount: Long,
              userdata: Array[Byte],
-             signature: ByteStr//,
-//             state: StateReader
+             signature: ByteStr,
+             storage: StateStorage
             ) : Either[ValidationError, RegistryTransaction] = {
     if (userdata.length > RegistryTransaction.MaxUserdata) {
       Left(ValidationError.TooBigArray)
+
+      // Verificar a busca do LevelDB
+      // Transaction Type = 14
+      // Implementação de busca para todos os transactions e comparar com o userdata
+
+      import io.lunes.state2.{SubStorageNames,  PrefixObject}
+      def makeKey(subPref: Array[Byte], pref: Array[Byte], id: Array[Byte]) : Array[Byte] = {
+        val Separator = PrefixObject.Separator
+        Array(Bytes.concat(subPref, Separator, pref, Separator, id))
+      }
+      val databaseSearch = SubStorageNames.names.map(_.getBytes)
+      val prefixSearch = PrefixObject.prefixes
+      val registryTran = Array(TransactionType.RegistryTransaction.id.toByte)
+      val searchableArray =
+        for {
+          sto <- databaseSearch
+          pre <- prefixSearch
+          searchKey <- makeKey(sto, pre, registryTran)
+        } yield storage.get(searchKey)
+
+      searchableArray.find(userdata) match {
+        case Some(udata) => println("X")//Already in
+        case None => println("X")//Input
+      }
+
+
     } else if (amount <= 0) {
       Left(ValidationError.NegativeAmount(amount, "lunes")) //CHECK IF AMOUNT IS POSITIVE
     } else if (Try(Math.addExact(amount, feeAmount)).isFailure) {
@@ -178,10 +187,10 @@ object RegistryTransaction {
              timestamp: Long,
              feeAssetId: Option[AssetId],
              feeAmount: Long,
-             userdata: Array[Byte] //,
-//             state: StateReader
+             userdata: Array[Byte],
+             storage: StateStorage
             ) : Either[ValidationError, RegistryTransaction] = {
-    create(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, userdata, ByteStr.empty/*, state*/).right.map { unsigned =>
+    create(assetId, sender, recipient, amount, timestamp, feeAssetId, feeAmount, userdata, ByteStr.empty, storage).right.map { unsigned =>
       unsigned.copy(signature = ByteStr(crypto.sign(sender, unsigned.bodyBytes())))
     }
   }
