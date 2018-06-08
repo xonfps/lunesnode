@@ -1,7 +1,5 @@
-import com.typesafe.sbt.packager.archetypes.TemplateWriter
-import sbt.Keys.{sourceGenerators, _}
+import sbt.Keys._
 import sbt._
-import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 enablePlugins(GitVersioning)
 git.useGitDescribe := true
@@ -22,6 +20,8 @@ scalacOptions ++= Seq(
   "-language:implicitConversions",
   "-Ywarn-unused:-implicits",
   "-Xlint")
+
+scalacOptions ++= Seq( "-unchecked", "-Ywarn-unused-import") // for checking warnings
 
 resolvers += Resolver.bintrayRepo("ethereum", "maven")
 
