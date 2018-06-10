@@ -31,6 +31,8 @@ normalizedName := network.value.name
 
 fork in run := true
 
+val scalaTestDep = Seq("org.scalatest" % "scalatest_2.10" % "2.0" % "test")
+
 lazy val node = project.in(file("."))
   .settings(
     libraryDependencies ++=
@@ -47,7 +49,8 @@ lazy val node = project.in(file("."))
       Dependencies.ficus ++
       Dependencies.scorex ++
       Dependencies.commons_net ++
-      Dependencies.monix.value
+      Dependencies.monix.value ++
+      scalaTestDep
   )
 
 //assembly settings
