@@ -20,6 +20,19 @@ case class Snapshot(prevHeight: Int, balance: Long, effectiveBalance: Long)
   */
 case class LeaseInfo(leaseIn: Long, leaseOut: Long)
 
+case class LeaseBalance(in: Long, out: Long)
+
+object LeaseBalance {
+  val empty = LeaseBalance(0, 0)
+
+  implicit val m: Monoid[LeaseBalance] = new Monoid[LeaseBalance] {
+    override def empty: LeaseBalance = LeaseBalance.empty
+
+    override def combine(x: LeaseBalance, y: LeaseBalance): LeaseBalance =
+      LeaseBalance(safeSum(x.in, y.in), safeSum(x.out, y.out))
+  }
+}
+
 /** LeaseInfo Companion Object.*/
 object LeaseInfo {
   val empty = LeaseInfo(0, 0)

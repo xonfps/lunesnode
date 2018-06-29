@@ -144,6 +144,12 @@ object ValidationError {
 
   /**
     *
+    * @param a
+    */
+  case class AliasIsDisabled(a: Alias) extends ValidationError
+
+  /**
+    *
     * @param order
     * @param err
     */
