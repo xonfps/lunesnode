@@ -31,23 +31,25 @@ object Importer extends ScorexLogging {
     SLF4JBridgeHandler.install()
 
     val configFilename = Try(args(0)).toOption.getOrElse("lunes-testnet.conf")
-    val config         = loadConfig(ConfigFactory.parseFile(new File(configFilename)))
-    val settings       = LunesSettings.fromConfig(config)
+    val config = loadConfig(ConfigFactory.parseFile(new File(configFilename)))
+    val settings = LunesSettings.fromConfig(config)
     AddressScheme.current = new AddressScheme {
-      override val chainId: Byte = settings.blockchainSettings.addressSchemeCharacter.toByte
+      override val chainId: Byte =
+        settings.blockchainSettings.addressSchemeCharacter.toByte
     }
 
     implicit val scheduler: Scheduler = Scheduler.singleThread("appender")
     val utxPoolStub = new UtxPool {
-      override def putIfNew(tx: Transaction)                                                     = ???
-      override def removeAll(txs: Traversable[Transaction]): Unit                                = {}
-      override def accountPortfolio(addr: Address)                                               = ???
-      override def portfolio(addr: Address)                                                      = ???
-      override def all                                                                           = ???
-      override def size                                                                          = ???
-      override def transactionById(transactionId: ByteStr)                                       = ???
-      override def packUnconfirmed(rest: MultiDimensionalMiningConstraint, sortInBlock: Boolean) = ???
-      override def close(): Unit                                                                 = {}
+      override def putIfNew(tx: Transaction) = ???
+      override def removeAll(txs: Traversable[Transaction]): Unit = {}
+      override def accountPortfolio(addr: Address) = ???
+      override def portfolio(addr: Address) = ???
+      override def all = ???
+      override def size = ???
+      override def transactionById(transactionId: ByteStr) = ???
+      override def packUnconfirmed(rest: MultiDimensionalMiningConstraint,
+                                   sortInBlock: Boolean) = ???
+      override def close(): Unit = {}
     }
 
     Try(args(1)) match {
@@ -56,17 +58,25 @@ object Importer extends ScorexLogging {
 
         createInputStream(filename) match {
           case Success(inputStream) =>
-            val db                = openDB(settings.dataDirectory)
+            val db = openDB(settings.dataDirectory)
             val blockchainUpdater = StorageFactory(settings, db, NTP)
-            val pos               = new PoSSelector(blockchainUpdater, settings.blockchainSettings)
-            val checkpoint        = new CheckpointServiceImpl(db, settings.checkpointsSettings)
-            val extAppender       = BlockAppender(checkpoint, blockchainUpdater, NTP, utxPoolStub, pos, settings, scheduler) _
+            val pos =
+              new PoSSelector(blockchainUpdater, settings.blockchainSettings)
+            val checkpoint =
+              new CheckpointServiceImpl(db, settings.checkpointsSettings)
+            val extAppender = BlockAppender(checkpoint,
+                                            blockchainUpdater,
+                                            NTP,
+                                            utxPoolStub,
+                                            pos,
+                                            settings,
+                                            scheduler) _
             checkGenesis(settings, blockchainUpdater)
-            val bis          = new BufferedInputStream(inputStream)
-            var quit         = false
-            val lenBytes     = new Array[Byte](Ints.BYTES)
-            val start        = System.currentTimeMillis()
-            var counter      = 0
+            val bis = new BufferedInputStream(inputStream)
+            var quit = false
+            val lenBytes = new Array[Byte](Ints.BYTES)
+            val start = System.currentTimeMillis()
+            var counter = 0
             var blocksToSkip = blockchainUpdater.height - 1
 
             println(s"Skipping $blocksToSkip blocks(s)")
@@ -74,16 +84,17 @@ object Importer extends ScorexLogging {
             while (!quit) {
               val s1 = bis.read(lenBytes)
               if (s1 == Ints.BYTES) {
-                val len    = Ints.fromByteArray(lenBytes)
+                val len = Ints.fromByteArray(lenBytes)
                 val buffer = new Array[Byte](len)
-                val s2     = bis.read(buffer)
+                val s2 = bis.read(buffer)
                 if (s2 == len) {
                   if (blocksToSkip > 0) {
                     blocksToSkip -= 1
                   } else {
                     val block = Block.parseBytes(buffer).get
                     if (blockchainUpdater.lastBlockId.contains(block.reference)) {
-                      Await.result(extAppender.apply(block).runAsync, Duration.Inf) match {
+                      Await.result(extAppender.apply(block).runAsync,
+                                   Duration.Inf) match {
                         case Left(ve) =>
                           log.error(s"Error appending block: $ve")
                           quit = true
@@ -97,17 +108,20 @@ object Importer extends ScorexLogging {
                   quit = true
                 }
               } else {
-                println(s"Expecting to read ${Ints.BYTES} but got $s1 (${bis.available()})")
+                println(
+                  s"Expecting to read ${Ints.BYTES} but got $s1 (${bis.available()})")
                 quit = true
               }
             }
             bis.close()
             inputStream.close()
             val duration = System.currentTimeMillis() - start
-            log.info(s"Imported $counter block(s) in ${humanReadableDuration(duration)}")
+            log.info(
+              s"Imported $counter block(s) in ${humanReadableDuration(duration)}")
           case Failure(ex) => log.error(s"Failed to open file '$filename")
         }
-      case Failure(ex) => log.error(s"Failed to get input filename from second parameter: $ex")
+      case Failure(ex) =>
+        log.error(s"Failed to get input filename from second parameter: $ex")
     }
   }
 
