@@ -6,9 +6,9 @@ import io.lunes.transaction.ValidationError
 import io.lunes.transaction.ValidationError.GenericError
 
 sealed trait Truth extends AddressOrAlias {
-  lazy val stringRepr: String = Alias.Prefix + networkByte.toChar + ":" + name
+  lazy val stringRepr: String = Truth.Prefix + networkByte.toChar + ":" + name
   lazy val bytes: ByteStr = ByteStr(
-    Alias.AddressVersion +: networkByte +: Deser.serializeArray(
+    Truth.AddressVersion +: networkByte +: Deser.serializeArray(
       name.getBytes("UTF-8")))
 
   val name: String
@@ -16,8 +16,7 @@ sealed trait Truth extends AddressOrAlias {
 
 }
 
-
-object Truth{
+object Truth {
   val Prefix: String = "truth:"
 
   val AddressVersion: Byte = 2
@@ -26,60 +25,60 @@ object Truth{
 
   val truthAlphabet = "-.0123456789@_abcdefghijklmnopqrstuvwxyz"
 
-  private val AliasPatternInfo =
-    "Alias string pattern is 'alias:<chain-id>:<address-alias>"  // todo: change this
+  private val TruthPatternInfo =
+    "Truth string pattern is 'truth:<chain-id>:<address-alias>"
 
   private def schemeByte: Byte = AddressScheme.current.chainId
 
-  private def validAliasChar(c: Char): Boolean =
+  private def validTruthChar(c: Char): Boolean =
     ('0' <= c && c <= '9') || ('a' <= c && c <= 'z') || c == '_' || c == '@' || c == '-' || c == '.'
 
-  private def buildAlias(networkByte: Byte, // todo: change this
-                         name: String): Either[ValidationError, Alias] = {
+  private def buildTruth(networkByte: Byte,
+                         name: String): Either[ValidationError, Truth] = {
 
-    case class AliasImpl(networkByte: Byte, name: String) extends Alias
+    case class TruthImpl(networkByte: Byte, name: String) extends Truth
 
     if (name.length < MinLength || MaxLength < name.length)
       Left(
         GenericError(
-          s"Alias '$name' length should be between $MinLength and $MaxLength"))
-    else if (!name.forall(validAliasChar))
+          s"Truth '$name' length should be between $MinLength and $MaxLength"))
+    else if (!name.forall(validTruthChar))
       Left(
         GenericError(
-          s"Alias should contain only following characters: $truthAlphabet"))
+          s"Truth should contain only following characters: $truthAlphabet"))
     else if (networkByte != schemeByte)
-      Left(GenericError("Alias network char doesn't match current scheme"))
+      Left(GenericError("Truth network char doesn't match current scheme"))
     else
-      Right(AliasImpl(networkByte, name))
+      Right(TruthImpl(networkByte, name))
   }
 
   def buildWithCurrentNetworkByte(
-                                   name: String): Either[ValidationError, Alias] =
-    buildAlias(schemeByte, name)
+      name: String): Either[ValidationError, Truth] =
+    buildTruth(schemeByte, name)
 
-  def fromString(str: String): Either[ValidationError, Alias] =
+  def fromString(str: String): Either[ValidationError, Truth] =
     if (!str.startsWith(Prefix)) {
-      Left(GenericError(AliasPatternInfo)) // todo: check this
+      Left(GenericError(TruthPatternInfo))
     } else {
-      val charSemicolonAlias = str.drop(Prefix.length)
-      val networkByte = charSemicolonAlias(0).toByte
-      val name = charSemicolonAlias.drop(2)
-      if (charSemicolonAlias(1) != ':') {
-        Left(GenericError(AliasPatternInfo))  //todo: check this
+      val charSemicolonTruth = str.drop(Prefix.length)
+      val networkByte = charSemicolonTruth(0).toByte
+      val name = charSemicolonTruth.drop(2)
+      if (charSemicolonTruth(1) != ':') {
+        Left(GenericError(TruthPatternInfo))
       } else {
-        buildAlias(networkByte, name)
+        buildTruth(networkByte, name)
       }
     }
 
-  def fromBytes(bytes: Array[Byte]): Either[ValidationError, Alias] = {  // todo: check this
+  def fromBytes(bytes: Array[Byte]): Either[ValidationError, Truth] = {
     bytes.headOption match {
       case Some(AddressVersion) =>
         val networkChar = bytes.tail.head
         if (networkChar != schemeByte) {
-          Left(GenericError("Alias network byte doesn't match current scheme"))
+          Left(GenericError("Truth network byte doesn't match current scheme"))
         } else
-          buildAlias(networkChar, new String(bytes.drop(4), "UTF-8"))
-      case _ => Left(GenericError("Bad alias bytes"))
+          buildTruth(networkChar, new String(bytes.drop(4), "UTF-8"))
+      case _ => Left(GenericError("Bad truth bytes"))
     }
   }
 
