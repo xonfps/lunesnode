@@ -23,15 +23,15 @@ object Truth {
   val MinLength = 4
   val MaxLength = 30
 
-  val truthAlphabet = "-.0123456789@_abcdefghijklmnopqrstuvwxyz"
+//  val truthAlphabet = "-.0123456789@_abcdefghijklmnopqrstuvwxyz"
 
   private val TruthPatternInfo =
     "Truth string pattern is 'truth:<chain-id>:<address-alias>"
 
   private def schemeByte: Byte = AddressScheme.current.chainId
 
-  private def validTruthChar(c: Char): Boolean =
-    ('0' <= c && c <= '9') || ('a' <= c && c <= 'z') || c == '_' || c == '@' || c == '-' || c == '.'
+//  private def validTruthChar(c: Char): Boolean = true
+//    ('0' <= c && c <= '9') || ('a' <= c && c <= 'z') || c == '_' || c == '@' || c == '-' || c == '.'
 
   private def buildTruth(networkByte: Byte,
                          name: String): Either[ValidationError, Truth] = {
@@ -42,10 +42,10 @@ object Truth {
       Left(
         GenericError(
           s"Truth '$name' length should be between $MinLength and $MaxLength"))
-    else if (!name.forall(validTruthChar))
-      Left(
-        GenericError(
-          s"Truth should contain only following characters: $truthAlphabet"))
+//    else if (!name.forall(validTruthChar))
+//      Left(
+//        GenericError(
+//          s"Truth should contain only following characters:"))
     else if (networkByte != schemeByte)
       Left(GenericError("Truth network char doesn't match current scheme"))
     else

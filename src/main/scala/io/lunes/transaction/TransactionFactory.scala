@@ -5,6 +5,7 @@ import io.lunes.state.ByteStr
 import scorex.account._
 import scorex.api.http.DataRequest
 import scorex.api.http.alias.{CreateAliasV1Request, CreateAliasV2Request}
+import scorex.api.http.truth.{CreateTruthV1Request, CreateTruthV2Request}
 import scorex.api.http.assets._
 import scorex.api.http.leasing.{
   LeaseCancelV1Request,
@@ -343,6 +344,52 @@ object TransactionFactory {
         sender,
         request.version,
         alias,
+        request.fee,
+        timestamp = request.timestamp.getOrElse(time.getTimestamp()),
+        signer
+      )
+    } yield tx
+  def truthV1(request: CreateTruthV1Request,
+              wallet: Wallet,
+              time: Time): Either[ValidationError, CreateTruthTransactionV1] =
+    truthV1(request, wallet, request.sender, time)
+
+  def truthV1(request: CreateTruthV1Request,
+              wallet: Wallet,
+              signerAddress: String,
+              time: Time): Either[ValidationError, CreateTruthTransactionV1] =
+    for {
+      sender <- wallet.findPrivateKey(request.sender)
+      signer <- if (request.sender == signerAddress) Right(sender)
+      else wallet.findPrivateKey(signerAddress)
+      truth <- Truth.buildWithCurrentNetworkByte(request.truth)
+      tx <- CreateTruthTransactionV1.signed(
+        sender,
+        truth,
+        request.fee,
+        request.timestamp.getOrElse(time.getTimestamp()),
+        signer
+      )
+    } yield tx
+
+  def truthV2(request: CreateTruthV2Request,
+              wallet: Wallet,
+              time: Time): Either[ValidationError, CreateTruthTransactionV2] =
+    truthV2(request, wallet, request.sender, time)
+
+  def truthV2(request: CreateTruthV2Request,
+              wallet: Wallet,
+              signerAddress: String,
+              time: Time): Either[ValidationError, CreateTruthTransactionV2] =
+    for {
+      sender <- wallet.findPrivateKey(request.sender)
+      signer <- if (request.sender == signerAddress) Right(sender)
+      else wallet.findPrivateKey(signerAddress)
+      truth <- Truth.buildWithCurrentNetworkByte(request.truth)
+      tx <- CreateTruthTransactionV2.signed(
+        sender,
+        request.version,
+        truth,
         request.fee,
         timestamp = request.timestamp.getOrElse(time.getTimestamp()),
         signer
