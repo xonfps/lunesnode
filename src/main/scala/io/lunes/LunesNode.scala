@@ -44,6 +44,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler
 import scorex.account.AddressScheme
 import scorex.api.http._
 import scorex.api.http.alias.{AliasApiRoute, AliasBroadcastApiRoute}
+import scorex.api.http.truth.{TruthApiRoute, TruthBroadcastApiRoute}
 import scorex.api.http.assets.{AssetsApiRoute, AssetsBroadcastApiRoute}
 import scorex.api.http.leasing.{LeaseApiRoute, LeaseBroadcastApiRoute}
 import scorex.consensus.nxt.api.http.NxtConsensusApiRoute
@@ -369,6 +370,15 @@ class LunesNode(val actorSystem: ActorSystem,
                       time,
                       blockchainUpdater),
         AliasBroadcastApiRoute(settings.restAPISettings,
+                               utxStorage,
+                               allChannels),
+        TruthApiRoute(settings.restAPISettings,
+                      wallet,
+                      utxStorage,
+                      allChannels,
+                      time,
+                      blockchainUpdater),
+        TruthBroadcastApiRoute(settings.restAPISettings,
                                utxStorage,
                                allChannels)
       )

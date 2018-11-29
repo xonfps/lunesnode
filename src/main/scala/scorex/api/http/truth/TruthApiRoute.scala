@@ -42,9 +42,9 @@ case class TruthApiRoute(settings: RestAPISettings,
         value = "Json with data",
         required = true,
         paramType = "body",
-        dataType = "scorex.api.http.alias.CreateAliasV1Request", //todo: check and change
+        dataType = "scorex.api.http.truth.CreateAliasV1Request", //todo: check and change
         defaultValue =
-          "{\n\t\"alias\": \"aliasalias\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}" //todo: check and change
+          "{\n\t\"truth\": \"truthtruth\",\n\t\"sender\": \"3Mx2afTZ2KbRrLNbytyzTtXukZvqEB8SkW7\",\n\t\"fee\": 100000\n}" //todo: check and change
       )
     ))
   @ApiResponses(
@@ -54,6 +54,7 @@ case class TruthApiRoute(settings: RestAPISettings,
       "create",
       (t: CreateTruthV1Request) => // todo: check and change both this and down
         doBroadcast(TransactionFactory.truthV1(t, wallet, time)))
+
   @Path("/by-truth/{truth}")
   @ApiOperation(
     value = "Account",
@@ -134,6 +135,6 @@ case class TruthApiRoute(settings: RestAPISettings,
 
   implicit val addressFormat: Format[Address] = Json.format
 
-  implicit val aliasTreeFormat: Format[TruthTree] = Json.format
+  implicit val truthTreeFormat: Format[TruthTree] = Json.format
 
 }
