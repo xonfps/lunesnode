@@ -24,6 +24,8 @@ class FeeCalculator(settings: FeesSettings, blockchain: Blockchain) {
     }
   }
 
+  private val minimumFee = map("minimum-fee")
+
   def enoughFee[T <: Transaction](
       tx: T,
       blockchain: Blockchain,
@@ -52,20 +54,27 @@ class FeeCalculator(settings: FeesSettings, blockchain: Blockchain) {
     } yield tx
   }
 
+  private def maximum (v1:Long, v2:Long) = {
+    if(v1 > v2) v1 else v2
+  }
+  //todo:Most likely place to implement minimum fee.
   private def minFeeFor(tx: Transaction,
                         txFeeAssetId: Option[AssetId],
-                        txMinBaseFee: Long): Long = tx match {
-    case tx: DataTransaction =>
-      val sizeInKb = 1 + (tx.bytes().length - 1) / Kb
-      txMinBaseFee * sizeInKb
-    case tx: MassTransferTransaction =>
-      val transferFeeSpec = map.getOrElse(
-        TransactionAssetFee(TransferTransactionV1.typeId, txFeeAssetId).key,
-        throw new IllegalStateException(
-          "Can't find spec for TransferTransaction")
-      )
-      transferFeeSpec + txMinBaseFee * tx.transfers.size
-    case _ => txMinBaseFee
+                        txMinBaseFee: Long): Long = {
+    val fee = tx match {
+      case tx: DataTransaction =>
+        val sizeInKb = 1 + (tx.bytes().length - 1) / Kb
+        txMinBaseFee * sizeInKb
+      case tx: MassTransferTransaction =>
+        val transferFeeSpec = map.getOrElse(
+          TransactionAssetFee(TransferTransactionV1.typeId, txFeeAssetId).key,
+          throw new IllegalStateException(
+            "Can't find spec for TransferTransaction")
+        )
+        transferFeeSpec + txMinBaseFee * tx.transfers.size
+      case _ => txMinBaseFee
+    }
+    maximum(fee, minimumFee)
   }
 }
 
