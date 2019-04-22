@@ -98,6 +98,7 @@ object SponsorFeeTransaction
              fee: Long,
              timestamp: Long,
              proofs: Proofs): Either[ValidationError, TransactionT] =
+  //todo:maybe alter here
     if (!supportedVersions.contains(version)) {
       Left(ValidationError.UnsupportedVersion(version))
     } else if (minSponsoredAssetFee.exists(_ <= 0)) {
