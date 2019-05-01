@@ -26,6 +26,7 @@ object ApiError {
     case ValidationError.NegativeAmount(x, of)   => NegativeAmount(s"$x of $of")
     case ValidationError.NegativeMinFee(x, of)   => NegativeMinFee(s"$x per $of")
     case ValidationError.InsufficientFee(x)      => InsufficientFee(x)
+    case ValidationError.InsufficientLunesInStake(x) => InsufficientLunesInStake(x)
     case ValidationError.InvalidName             => InvalidName
     case ValidationError.InvalidSignature(_, _)  => InvalidSignature
     case ValidationError.InvalidRequestSignature => InvalidSignature

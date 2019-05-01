@@ -97,24 +97,26 @@ object SponsorFeeTransaction
              minSponsoredAssetFee: Option[Long],
              fee: Long,
              timestamp: Long,
-             proofs: Proofs): Either[ValidationError, TransactionT] =
-  //todo:maybe alter here
+             proofs: Proofs): Either[ValidationError, TransactionT] = {
     if (!supportedVersions.contains(version)) {
       Left(ValidationError.UnsupportedVersion(version))
     } else if (minSponsoredAssetFee.exists(_ <= 0)) {
       Left(ValidationError.NegativeMinFee(minSponsoredAssetFee.get, "asset"))
     } else if (fee <= 0) {
       Left(ValidationError.InsufficientFee())
-    } else {
+    }
+    else {
       Right(
         SponsorFeeTransaction(version,
-                              sender,
-                              assetId,
-                              minSponsoredAssetFee,
-                              fee,
-                              timestamp,
-                              proofs))
+          sender,
+          assetId,
+          minSponsoredAssetFee,
+          fee,
+          timestamp,
+          proofs)
+      )
     }
+  }
 
   def signed(version: Byte,
              sender: PublicKeyAccount,

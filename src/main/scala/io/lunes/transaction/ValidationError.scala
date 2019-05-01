@@ -17,8 +17,8 @@ object ValidationError {
   case class InvalidAddress(reason: String) extends ValidationError
   case class NegativeAmount(amount: Long, of: String) extends ValidationError
   case class NegativeMinFee(minFee: Long, of: String) extends ValidationError
-  case class InsufficientFee(msg: String = "insufficient fee")
-      extends ValidationError
+  case class InsufficientFee(msg: String = "insufficient fee") extends ValidationError
+  case class InsufficientLunesInStake(msg: String = "Insufficient Lunes in Stake") extends ValidationError
   case object TooBigArray extends ValidationError
   case object InvalidName extends ValidationError
   case object OverflowError extends ValidationError

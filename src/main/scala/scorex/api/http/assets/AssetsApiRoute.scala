@@ -19,6 +19,9 @@ import io.lunes.transaction.assets.exchange.Order
 import io.lunes.transaction.assets.exchange.OrderJson._
 import io.lunes.transaction.smart.script.ScriptCompiler
 import io.lunes.transaction.{AssetIdStringLength, TransactionFactory}
+import io.lunes.transaction.ValidationError.GenericError
+import java.io
+
 import scorex.utils.Time
 import scorex.wallet.Wallet
 
@@ -86,9 +89,7 @@ case class AssetsApiRoute(settings: RestAPISettings,
               case (a, b) => a.stringRepr -> b
             })
           case Failure(_) =>
-            ApiError.fromValidationError(
-              io.lunes.transaction.ValidationError
-                .GenericError("Must be base58-encoded assetId"))
+            ApiError.fromValidationError(GenericError("Must be base58-encoded assetId"))
         }
       }
     }
@@ -281,6 +282,12 @@ case class AssetsApiRoute(settings: RestAPISettings,
         .map(pk => Order.sign(order, pk))
     })
 
+  /**
+    * Get a Json with Balance for Refered AssetID
+    * @param address
+    * @param assetIdStr
+    * @return
+    */
   private def balanceJson(address: String,
                           assetIdStr: String): Either[ApiError, JsObject] = {
     ByteStr.decodeBase58(assetIdStr) match {
@@ -299,8 +306,96 @@ case class AssetsApiRoute(settings: RestAPISettings,
     }
   }
 
-  private def fullAccountAssetsInfo(
-      address: String): Either[ApiError, JsObject] =
+
+  /**
+    * Search for Lunes Asset Id
+    * @param address
+    * @return
+    */
+  private def LunesAssetId(address: String) : Either[ApiError, String] ={
+    val maybeLunesId =
+      (for {
+      acc <- Address.fromString(address)
+      (aId, balance) <- blockchain.portfolio(acc).assets
+      details <- assetDetails(aId.toString)
+      if (details match {
+        case Right(x) => {
+          val lunesName = ( x \ "name").as[String].toUpperCase
+          "LUNES" == lunesName
+        }
+        case _ => false
+      }
+        )
+    } yield (details \ "assetId").as[String]
+      ).head
+    //function return
+    maybeLunesId match {
+      case x: String => Right(x)
+      case _ => Left(ApiError.fromValidationError(GenericError("Could not find any Lunes on the asset")))
+    }
+   }
+
+  /**
+    * Check if issuer has enough Lunes in it wallet
+    * @param address
+    * @return
+    */
+  def hasEnoughLunesInStake(address: String, assetId:String) : Boolean = {
+
+    /**
+      * Check if the issuer has enough lunes in its wallet
+      * Check if the address has enough lunes int its wallet
+      */
+    val lunesId = LunesAssetId(address) match {
+      case Right(x) => x
+      case Left(_) => ""
+    }
+
+    val issuerLunesBalance = getIssuerBalance(assetId, lunesId).toLong
+
+    val maybeAddressLunesBalance = balanceJson(address, lunesId) match {
+      case Right(x) => Some( (x \ "balance").as[String])
+      case Left(_) => None
+    }
+
+    val addressLunesBalance =maybeAddressLunesBalance match {
+      case Some(x) => x.toLong
+      case None => 0L
+    }
+
+    val lunesMinimumFee = 20000L
+
+    (issuerLunesBalance >= lunesMinimumFee) || (addressLunesBalance >= lunesMinimumFee)
+  }
+
+  /**
+    * Get the Issuer Balance for some Asset
+    * In error, return "0" balance.
+    * @param assetId
+    * @param lunesId
+    * @return
+    */
+  private def getIssuerBalance(assetId:String, checkAssetId:String): String = {
+
+    val issuer = issuerForAsset(assetId)
+
+    val maybeIssuerBalance = balanceJson(issuer, checkAssetId) match {
+          case Right(x) => Some( (x \ "balance").as[String])
+          case Left(_) => None
+        }
+
+    maybeIssuerBalance match {
+      case Some(x) => x
+      case None => "0"
+    }
+  }
+
+  /**
+    * Get Assets Information for all assets for address.
+    * @param address
+    * @return
+    */
+  private def fullAccountAssetsInfo(address: String): Either[ApiError, JsObject] =
     (for {
       acc <- Address.fromString(address)
     } yield {
@@ -335,6 +430,11 @@ case class AssetsApiRoute(settings: RestAPISettings,
       )
     }).left.map(ApiError.fromValidationError)
 
+  /**
+    * Asset Details in the Blockchain
+    * @param assetId
+    * @return
+    */
   private def assetDetails(assetId: String): Either[ApiError, JsObject] =
     (for {
       id <- ByteStr.decodeBase58(assetId).toOption.toRight("Incorrect asset ID")
@@ -358,7 +458,7 @@ case class AssetsApiRoute(settings: RestAPISettings,
           "issueHeight" -> JsNumber(h),
           "issueTimestamp" -> JsNumber(tx.timestamp),
           "issuer" -> JsString(tx.sender.toString),
-          "name" -> JsString(new String(tx.name, Charsets.UTF_8)),
+          "name" -> JsString(new String(tx.name, Charsets.UTF_8)), //asset name
           "description" -> JsString(new String(tx.description, Charsets.UTF_8)),
           "decimals" -> JsNumber(tx.decimals.toInt),
           "reissuable" -> JsBoolean(description.reissuable),
@@ -377,6 +477,24 @@ case class AssetsApiRoute(settings: RestAPISettings,
       )
     }).left.map(m => CustomValidationError(m))
 
+  /**
+    * Inner method for acquire Issuer for an Asset
+    * @param assetId Asset String ID
+    */
+  private def issuerForAsset(assetId:String) : String ={
+    val assetDt = assetDetails(assetId) match {
+      case Left(x) => None
+
+      case Right(x) => Some(x.value("issuer").toString())
+    }
+    val issuer = assetDt match{
+      case None => ""
+      case Some(value) => value
+    }
+    issuer
+  }
+
+
 //  @Path("/sponsor")
 //  @ApiOperation(value = "Sponsor an Asset", httpMethod = "POST", produces = "application/json", consumes = "application/json")
   @ApiImplicitParams(
@@ -392,7 +510,17 @@ case class AssetsApiRoute(settings: RestAPISettings,
       )
     ))
   def sponsorRoute: Route =
-    processRequest("sponsor",
-                   (req: SponsorFeeRequest) =>
-                     doBroadcast(TransactionFactory.sponsor(req, wallet, time)))
+
+      processRequest("sponsor",
+        (req: SponsorFeeRequest) => {
+//          if( hasEnoughLunesInStake(req.sender, req.assetId))
+            doBroadcast(TransactionFactory.sponsor(req, wallet, time))
+//          else {
+//            val notEnoughLunes = new InsufficientLunesInStake(
+//              s"There must be at least 20000 LUNES in Stake for the account or the issuer."
+//            )
+//            Left(notEnoughLunes)
+//          }
+        }
+      )
 }
