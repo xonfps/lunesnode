@@ -481,14 +481,29 @@ object TransactionFactory {
 
   def sponsor(request: SponsorFeeRequest,
               wallet: Wallet,
-              time: Time): Either[ValidationError, SponsorFeeTransaction] =
-    sponsor(request, wallet, request.sender, time)
+              time: Time,
+              enoughLunesInStake:Boolean): Either[ValidationError, SponsorFeeTransaction] =
+    sponsor(request, wallet, request.sender, time, enoughLunesInStake)
 
+
+  /**
+    * Adjusted for Lunes Rule for Minimum Stake;
+    * @param request
+    * @param wallet
+    * @param signerAddress
+    * @param time
+    * @return
+    */
   def sponsor(request: SponsorFeeRequest,
               wallet: Wallet,
               signerAddress: String,
-              time: Time): Either[ValidationError, SponsorFeeTransaction] =
-    for {
+              time: Time,
+              enoughLunesInStake:Boolean): Either[ValidationError, SponsorFeeTransaction] = {
+    if (!enoughLunesInStake)
+      Left(ValidationError.InsufficientLunesInStake(
+        "There must be at least 20000 LUNES in Stake for the account or the issuer.") )
+    else
+      for {
       sender <- wallet.findPrivateKey(request.sender)
       signer <- if (request.sender == signerAddress) Right(sender)
       else wallet.findPrivateKey(signerAddress)
@@ -507,4 +522,7 @@ object TransactionFactory {
         signer
       )
     } yield tx
+
+  }
+
 }

@@ -513,14 +513,8 @@ case class AssetsApiRoute(settings: RestAPISettings,
 
       processRequest("sponsor",
         (req: SponsorFeeRequest) => {
-//          if( hasEnoughLunesInStake(req.sender, req.assetId))
-            doBroadcast(TransactionFactory.sponsor(req, wallet, time))
-//          else {
-//            val notEnoughLunes = new InsufficientLunesInStake(
-//              s"There must be at least 20000 LUNES in Stake for the account or the issuer."
-//            )
-//            Left(notEnoughLunes)
-//          }
+            val checkLunesStakeRule = hasEnoughLunesInStake(req.sender, req.assetId)
+            doBroadcast(TransactionFactory.sponsor(req, wallet, time, checkLunesStakeRule))
         }
       )
 }
