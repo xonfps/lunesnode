@@ -48,7 +48,6 @@ object AssetInfo {
   }
 }
 
-//todo: watch this class for information about issuer and the lunes balance for this account.
 case class AssetDescription(issuer: PublicKeyAccount,
                             name: Array[Byte],
                             description: Array[Byte],
@@ -87,9 +86,6 @@ object AccountDataInfo {
 sealed abstract class Sponsorship
 case class SponsorshipValue(minFee: Long) extends Sponsorship
 case object SponsorshipNoInfo extends Sponsorship
-
-
-
 
 object Sponsorship {
   val FeeUnit = 100000

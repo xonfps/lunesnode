@@ -482,9 +482,9 @@ object TransactionFactory {
   def sponsor(request: SponsorFeeRequest,
               wallet: Wallet,
               time: Time,
-              enoughLunesInStake:Boolean): Either[ValidationError, SponsorFeeTransaction] =
+              enoughLunesInStake: Boolean)
+    : Either[ValidationError, SponsorFeeTransaction] =
     sponsor(request, wallet, request.sender, time, enoughLunesInStake)
-
 
   /**
     * Adjusted for Lunes Rule for Minimum Stake;
@@ -498,30 +498,31 @@ object TransactionFactory {
               wallet: Wallet,
               signerAddress: String,
               time: Time,
-              enoughLunesInStake:Boolean): Either[ValidationError, SponsorFeeTransaction] = {
+              enoughLunesInStake: Boolean)
+    : Either[ValidationError, SponsorFeeTransaction] = {
     if (!enoughLunesInStake)
       Left(ValidationError.InsufficientLunesInStake(
-        "There must be at least 20000 LUNES in Stake for the account or the issuer.") )
+        "There must be at least 20000 LUNES in Stake for the account or the issuer."))
     else
       for {
-      sender <- wallet.findPrivateKey(request.sender)
-      signer <- if (request.sender == signerAddress) Right(sender)
-      else wallet.findPrivateKey(signerAddress)
-      assetId <- ByteStr
-        .decodeBase58(request.assetId)
-        .toEither
-        .left
-        .map(_ => GenericError(s"Wrong Base58 string: ${request.assetId}"))
-      tx <- SponsorFeeTransaction.signed(
-        request.version,
-        sender,
-        assetId,
-        request.minSponsoredAssetFee,
-        request.fee,
-        request.timestamp.getOrElse(time.getTimestamp()),
-        signer
-      )
-    } yield tx
+        sender <- wallet.findPrivateKey(request.sender)
+        signer <- if (request.sender == signerAddress) Right(sender)
+        else wallet.findPrivateKey(signerAddress)
+        assetId <- ByteStr
+          .decodeBase58(request.assetId)
+          .toEither
+          .left
+          .map(_ => GenericError(s"Wrong Base58 string: ${request.assetId}"))
+        tx <- SponsorFeeTransaction.signed(
+          request.version,
+          sender,
+          assetId,
+          request.minSponsoredAssetFee,
+          request.fee,
+          request.timestamp.getOrElse(time.getTimestamp()),
+          signer
+        )
+      } yield tx
 
   }
 

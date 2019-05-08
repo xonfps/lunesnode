@@ -5,8 +5,7 @@ import scorex.serialization.Deser
 import io.lunes.transaction.ValidationError
 import io.lunes.transaction.ValidationError.GenericError
 
-sealed trait
-Alias extends AddressOrAlias {
+sealed trait Alias extends AddressOrAlias {
   lazy val stringRepr: String = Alias.Prefix + networkByte.toChar + ":" + name
   lazy val bytes: ByteStr = ByteStr(
     Alias.AddressVersion +: networkByte +: Deser.serializeArray(

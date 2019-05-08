@@ -82,7 +82,7 @@ case class NegativeMinFee(msg: String) extends ApiError {
   override val code: StatusCode = StatusCodes.BadRequest
 }
 
-case class InsufficientLunesInStake(msg:String) extends ApiError {
+case class InsufficientLunesInStake(msg: String) extends ApiError {
   override val id: Int = 115
   override val message: String = s"insufficient LUNES in stake per: $msg"
   override val code: StatusCode = StatusCodes.BadRequest

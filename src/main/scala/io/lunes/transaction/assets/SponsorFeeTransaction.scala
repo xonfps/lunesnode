@@ -104,16 +104,15 @@ object SponsorFeeTransaction
       Left(ValidationError.NegativeMinFee(minSponsoredAssetFee.get, "asset"))
     } else if (fee <= 0) {
       Left(ValidationError.InsufficientFee())
-    }
-    else {
+    } else {
       Right(
         SponsorFeeTransaction(version,
-          sender,
-          assetId,
-          minSponsoredAssetFee,
-          fee,
-          timestamp,
-          proofs)
+                              sender,
+                              assetId,
+                              minSponsoredAssetFee,
+                              fee,
+                              timestamp,
+                              proofs)
       )
     }
   }

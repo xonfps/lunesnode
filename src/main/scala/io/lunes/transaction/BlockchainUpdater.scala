@@ -7,7 +7,8 @@ import scorex.block.{Block, MicroBlock}
 
 trait BlockchainUpdater {
 
-  def processBlock(block: Block): Either[ValidationError, Option[DiscardedTransactions]]
+  def processBlock(
+      block: Block): Either[ValidationError, Option[DiscardedTransactions]]
 
   def processMicroBlock(microBlock: MicroBlock): Either[ValidationError, Unit]
 

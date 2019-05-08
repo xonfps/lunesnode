@@ -123,7 +123,8 @@ class LunesNode(val actorSystem: ActorSystem,
     if (wallet.privateKeyAccounts.isEmpty)
       wallet.generateNewAccounts(1)
 
-    val feeCalculator = new FeeCalculator(settings.feesSettings, blockchainUpdater)
+    val feeCalculator =
+      new FeeCalculator(settings.feesSettings, blockchainUpdater)
     val time: Time = NTP
     val establishedConnections = new ConcurrentHashMap[Channel, PeerInfo]
     val allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE)
@@ -143,7 +144,7 @@ class LunesNode(val actorSystem: ActorSystem,
     maybeUtx = Some(utxStorage)
 
     val knownInvalidBlocks = new InvalidBlockStorageImpl(
-            settings.synchronizationSettings.invalidBlocksStorage)
+      settings.synchronizationSettings.invalidBlocksStorage)
 
     val pos = new PoSSelector(blockchainUpdater, settings.blockchainSettings)
 
@@ -496,8 +497,7 @@ class LunesNode(val actorSystem: ActorSystem,
 
 object LunesNode extends ScorexLogging {
 
-  var currentNode : LunesNode = null
-
+  var currentNode: LunesNode = null
 
   private def readConfig(userConfigPath: Option[String]): Config = {
     val maybeConfigFile = for {

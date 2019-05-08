@@ -26,12 +26,12 @@ class FeeCalculator(settings: FeesSettings, blockchain: Blockchain) {
 
 //  private val minimumFee = map("minimum-fee")
 
-  def enoughFee[T <: Transaction]( tx: T,
-                                   blockchain: Blockchain,
-                                   fs: FunctionalitySettings): Either[ValidationError, T] =
+  def enoughFee[T <: Transaction](
+      tx: T,
+      blockchain: Blockchain,
+      fs: FunctionalitySettings): Either[ValidationError, T] =
     if (blockchain.height >= Sponsorship.sponsoredFeesSwitchHeight(blockchain,
-                                                                   fs)
-        )
+                                                                   fs))
       Right(tx)
     else enoughFee(tx)
 
@@ -41,24 +41,24 @@ class FeeCalculator(settings: FeesSettings, blockchain: Blockchain) {
 
     for {
       txMinBaseFee <- Either.cond(
-                                  map.contains(txAssetFeeKey),
-                                  map(txAssetFeeKey),
-                                  GenericError(s"Minimum fee is not defined for $txAssetFeeKey")
-                      )
+        map.contains(txAssetFeeKey),
+        map(txAssetFeeKey),
+        GenericError(s"Minimum fee is not defined for $txAssetFeeKey")
+      )
       minTxFee = minFeeFor(tx, txFeeAssetId, txMinBaseFee)
       _ <- Either.cond(
-                        txFeeValue >= minTxFee,
-                        (),
-                        GenericError {
-                                      s"Fee in ${txFeeAssetId.fold("LUNES")(_.toString)} for ${tx.builder.classTag} transaction does not exceed minimal value of $minTxFee"
-                        }
-                      )
+        txFeeValue >= minTxFee,
+        (),
+        GenericError {
+          s"Fee in ${txFeeAssetId.fold("LUNES")(_.toString)} for ${tx.builder.classTag} transaction does not exceed minimal value of $minTxFee"
+        }
+      )
     } yield tx
   }
 
-  private def maximum (v1:Long, v2:Long) = {
-    if(v1 > v2) v1 else v2
-  }
+//  private def maximum(v1: Long, v2: Long) = {
+//    if (v1 > v2) v1 else v2
+//  }
 
   /**
     * Check for minimum fee for the asset.

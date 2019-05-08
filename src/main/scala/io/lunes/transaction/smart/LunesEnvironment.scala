@@ -12,7 +12,6 @@ import scodec.bits.ByteVector
 import scorex.account.{Address, AddressOrAlias, Alias}
 import io.lunes.transaction.Transaction
 
-
 class LunesEnvironment(nByte: Byte,
                        tx: Coeval[Transaction],
                        h: Coeval[Int],
@@ -42,7 +41,6 @@ class LunesEnvironment(nByte: Byte,
       case _                                            => None
     }
   }
-
 
   override def resolveAlias(name: String): Either[String, Recipient.Address] =
     blockchain
