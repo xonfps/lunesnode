@@ -24,8 +24,6 @@ class FeeCalculator(settings: FeesSettings, blockchain: Blockchain) {
     }
   }
 
-//  private val minimumFee = map("minimum-fee")
-
   def enoughFee[T <: Transaction](
       tx: T,
       blockchain: Blockchain,
