@@ -56,6 +56,7 @@ case class AssetDescription(issuer: PublicKeyAccount,
                             totalVolume: BigInt,
                             script: Option[Script],
                             sponsorship: Long) {
+
   override def equals(obj: scala.Any) = obj match {
     case o: AssetDescription =>
       o.issuer == this.issuer &&
@@ -140,7 +141,7 @@ case class Diff(transactions: Map[ByteStr, (Int, Transaction, Set[Address])],
           m.combine(Map(acc -> set))
       }
     groupedByAcc
-      .mapValues(l => l.toList.sortBy { case ((h, t, _)) => (-h, -t) }) // fresh head ([h=2, h=1, h=0])
+      .mapValues(l => l.toList.sortBy { case (h, t, _) => (-h, -t) }) // fresh head ([h=2, h=1, h=0])
       .mapValues(_.map(_._3))
   }
 }
@@ -178,7 +179,7 @@ object Diff {
                        Map.empty,
                        Map.empty)
 
-  implicit val diffMonoid = new Monoid[Diff] {
+  implicit val diffMonoid: Monoid[Diff] = new Monoid[Diff] {
     override def empty: Diff = Diff.empty
 
     override def combine(older: Diff, newer: Diff): Diff =

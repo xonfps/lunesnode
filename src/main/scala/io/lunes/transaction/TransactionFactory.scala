@@ -40,6 +40,11 @@ object TransactionFactory {
       wallet: Wallet,
       signerAddress: String,
       time: Time): Either[ValidationError, TransferTransactionV1] =
+    //todo: insert Validation Error for Frozen Asset
+    /*
+    Insert match case for
+
+     */
     for {
       sender <- wallet.findPrivateKey(request.sender)
       signer <- if (request.sender == signerAddress) Right(sender)
@@ -68,6 +73,11 @@ object TransactionFactory {
       wallet: Wallet,
       signerAddress: String,
       time: Time): Either[ValidationError, TransferTransactionV2] =
+  //todo: insert Validation Error for Frozen Asset
+  /*
+  Insert match case for
+
+   */
     for {
       sender <- wallet.findPrivateKey(request.sender)
       signer <- if (request.sender == signerAddress) Right(sender)
@@ -97,6 +107,11 @@ object TransactionFactory {
       wallet: Wallet,
       signerAddress: String,
       time: Time): Either[ValidationError, MassTransferTransaction] =
+  //todo: insert Validation Error for Frozen Asset
+  /*
+  Insert match case for
+
+   */
     for {
       sender <- wallet.findPrivateKey(request.sender)
       signer <- if (request.sender == signerAddress) Right(sender)
@@ -126,6 +141,7 @@ object TransactionFactory {
                 wallet: Wallet,
                 signerAddress: String,
                 time: Time): Either[ValidationError, SetScriptTransaction] =
+  //todo: Verificar a finalidade desta chamada
     for {
       sender <- wallet.findPrivateKey(request.sender)
       signer <- if (request.sender == signerAddress) Right(sender)
@@ -316,6 +332,11 @@ object TransactionFactory {
               wallet: Wallet,
               signerAddress: String,
               time: Time): Either[ValidationError, CreateAliasTransactionV1] =
+  //todo: check to see if should insert Validation Error for Frozen Asset
+  /*
+  Insert match case for
+
+   */
     for {
       sender <- wallet.findPrivateKey(request.sender)
       signer <- if (request.sender == signerAddress) Right(sender)

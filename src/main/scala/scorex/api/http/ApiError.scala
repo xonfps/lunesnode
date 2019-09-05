@@ -28,6 +28,8 @@ object ApiError {
     case ValidationError.InsufficientFee(x)    => InsufficientFee(x)
     case ValidationError.InsufficientLunesInStake(x) =>
       InsufficientLunesInStake(x)
+    case ValidationError.FrozenAssetTransaction(x) =>
+      FrozenAssetTransaction(x)
     case ValidationError.InvalidName             => InvalidName
     case ValidationError.InvalidSignature(_, _)  => InvalidSignature
     case ValidationError.InvalidRequestSignature => InvalidSignature
@@ -84,9 +86,9 @@ case object ApiKeyNotValid extends ApiError {
 }
 
 case object DiscontinuedApi extends ApiError {
-  override val id = 3
-  override val code = StatusCodes.BadRequest
-  override val message = "This API is no longer supported"
+  override val id: Int = 3
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "This API is no longer supported"
 }
 
 case object TooBigArrayAllocation extends ApiError {
@@ -109,7 +111,7 @@ case object InvalidAddress extends ApiError {
 }
 
 case object InvalidSeed extends ApiError {
-  override val id = 103
+  override val id: Int = 103
   override val code = StatusCodes.BadRequest
   override val message = "invalid seed"
 }
