@@ -17,7 +17,7 @@ trait ApiError {
   val message: String
   val code: StatusCode
 
-  lazy val json = Json.obj("error" -> id, "message" -> message)
+  lazy val json: JsObject = Json.obj("error" -> id, "message" -> message)
 }
 
 object ApiError {
@@ -58,9 +58,9 @@ object ApiError {
 }
 
 case object Unknown extends ApiError {
-  override val id = 0
-  override val code = StatusCodes.InternalServerError
-  override val message = "Error is unknown"
+  override val id: Int = 0
+  override val code: StatusCodes.ServerError = StatusCodes.InternalServerError
+  override val message: String = "Error is unknown"
 }
 
 case class WrongJson(
@@ -68,8 +68,8 @@ case class WrongJson(
     errors: Seq[(JsPath, Seq[JsonValidationError])] = Seq.empty)
     extends ApiError {
   override val id = 1
-  override val code = StatusCodes.BadRequest
-  override lazy val message = "failed to parse json message"
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override lazy val message: String = "failed to parse json message"
   override lazy val json: JsObject = Json.obj(
     "error" -> id,
     "message" -> message,
@@ -80,8 +80,8 @@ case class WrongJson(
 
 //API Auth
 case object ApiKeyNotValid extends ApiError {
-  override val id = 2
-  override val code = StatusCodes.Forbidden
+  override val id: Int = 2
+  override val code: StatusCodes.ClientError = StatusCodes.Forbidden
   override val message: String = "Provided API key is not correct"
 }
 
@@ -99,63 +99,63 @@ case object TooBigArrayAllocation extends ApiError {
 
 //VALIDATION
 case object InvalidSignature extends ApiError {
-  override val id = 101
-  override val code = StatusCodes.BadRequest
-  override val message = "invalid signature"
+  override val id: Int = 101
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "invalid signature"
 }
 
 case object InvalidAddress extends ApiError {
-  override val id = 102
-  override val code = StatusCodes.BadRequest
-  override val message = "invalid address"
+  override val id: Int = 102
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "invalid address"
 }
 
 case object InvalidSeed extends ApiError {
   override val id: Int = 103
-  override val code = StatusCodes.BadRequest
-  override val message = "invalid seed"
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "invalid seed"
 }
 
 case object InvalidAmount extends ApiError {
-  override val id = 104
-  override val code = StatusCodes.BadRequest
-  override val message = "invalid amount"
+  override val id: Int = 104
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "invalid amount"
 }
 
 case object InvalidFee extends ApiError {
-  override val id = 105
-  override val code = StatusCodes.BadRequest
-  override val message = "invalid fee"
+  override val id: Int = 105
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "invalid fee"
 }
 
 case object InvalidSender extends ApiError {
-  override val id = 106
-  override val code = StatusCodes.BadRequest
-  override val message = "invalid sender"
+  override val id: Int = 106
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "invalid sender"
 }
 
 case object InvalidRecipient extends ApiError {
-  override val id = 107
-  override val code = StatusCodes.BadRequest
-  override val message = "invalid recipient"
+  override val id: Int = 107
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "invalid recipient"
 }
 
 case object InvalidPublicKey extends ApiError {
-  override val id = 108
-  override val code = StatusCodes.BadRequest
-  override val message = "invalid public key"
+  override val id: Int = 108
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "invalid public key"
 }
 
 case object InvalidNotNumber extends ApiError {
-  override val id = 109
-  override val code = StatusCodes.BadRequest
-  override val message = "argument is not a number"
+  override val id: Int = 109
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "argument is not a number"
 }
 
 case object InvalidMessage extends ApiError {
-  override val id = 110
-  override val code = StatusCodes.BadRequest
-  override val message = "invalid message"
+  override val id: Int = 110
+  override val code: StatusCodes.ClientError = StatusCodes.BadRequest
+  override val message: String = "invalid message"
 }
 
 case object InvalidName extends ApiError {
@@ -168,7 +168,7 @@ case class StateCheckFailed(tx: Transaction, err: String) extends ApiError {
   override val id: Int = 112
   override val message: String = s"State check failed. Reason: $err"
   override val code: StatusCode = StatusCodes.BadRequest
-  override lazy val json =
+  override lazy val json: JsObject =
     Json.obj("error" -> id, "message" -> message, "tx" -> tx.json())
 }
 
@@ -198,13 +198,13 @@ case class CustomValidationError(errorMessage: String) extends ApiError {
 
 case object BlockDoesNotExist extends ApiError {
   override val id: Int = 301
-  override val code = StatusCodes.NotFound
+  override val code: StatusCodes.ClientError = StatusCodes.NotFound
   override val message: String = "block does not exist"
 }
 
 case class AliasDoesNotExist(aoa: AddressOrAlias) extends ApiError {
   override val id: Int = 302
-  override val code = StatusCodes.NotFound
+  override val code: StatusCodes.ClientError = StatusCodes.NotFound
   private lazy val msgReason = aoa match {
     case a: Address => s"for address '${a.stringRepr}'"
     case a: Alias   => s"'${a.stringRepr}'"
@@ -224,7 +224,7 @@ object Mistiming {
 
 case object DataKeyNotExists extends ApiError {
   override val id: Int = 304
-  override val code = StatusCodes.NotFound
+  override val code: StatusCodes.ClientError = StatusCodes.NotFound
   override val message: String = "no data for this key"
 }
 
