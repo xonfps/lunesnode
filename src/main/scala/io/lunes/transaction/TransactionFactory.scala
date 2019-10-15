@@ -8,11 +8,21 @@ import scorex.account._
 import scorex.api.http.DataRequest
 import scorex.api.http.alias.{CreateAliasV1Request, CreateAliasV2Request}
 import scorex.api.http.assets._
-import scorex.api.http.leasing.{LeaseCancelV1Request, LeaseCancelV2Request, LeaseV1Request, LeaseV2Request}
+import scorex.api.http.leasing.{
+  LeaseCancelV1Request,
+  LeaseCancelV2Request,
+  LeaseV1Request,
+  LeaseV2Request
+}
 import io.lunes.utils.Base58
 import io.lunes.transaction.ValidationError.GenericError
 import io.lunes.transaction.assets._
-import io.lunes.transaction.lease.{LeaseCancelTransactionV1, LeaseCancelTransactionV2, LeaseTransactionV1, LeaseTransactionV2}
+import io.lunes.transaction.lease.{
+  LeaseCancelTransactionV1,
+  LeaseCancelTransactionV2,
+  LeaseTransactionV1,
+  LeaseTransactionV2
+}
 import io.lunes.transaction.smart.SetScriptTransaction
 import io.lunes.transaction.smart.script.Script
 import io.lunes.transaction.transfer._
@@ -33,36 +43,38 @@ object TransactionFactory {
       request: TransferV1Request,
       wallet: Wallet,
       signerAddress: String,
-      time: Time): Either[ValidationError, TransferTransactionV1] =
-      {
-        val flagConditionSender = SecurityChecker.checkAddress(request.sender)
-        val flagConditionRecipient = SecurityChecker.checkAddress(request.recipient)
-        val flagCondition =  flagConditionSender || flagConditionRecipient
-        if (flagCondition) {
-          for {
-            sender <- wallet.findPrivateKey(request.sender)
-            signer <- if (request.sender == signerAddress) Right(sender)
-            else wallet.findPrivateKey(signerAddress)
-            recipientAcc <- AddressOrAlias.fromString(request.recipient)
-            tx <- TransferTransactionV1.signed(
-              request.assetId.map(s => ByteStr.decodeBase58(s).get),
-              sender,
-              recipientAcc,
-              request.amount,
-              request.timestamp.getOrElse(time.getTimestamp()),
-              request.feeAssetId.map(s => ByteStr.decodeBase58(s).get),
-              request.fee,
-              signer
-            )
-          } yield tx
-        } else {
-          val extendedCause = if (flagConditionSender && flagConditionRecipient)
-                                        "Sender and Recipient were marked on security check"
-                              else if (flagConditionSender) "Sender is marked on security check"
-                              else "Recipient is marked on security check"
-          Left(ValidationError.FrozenAssetTransaction(s"The transcation could not be processed due $extendedCause"))
-        }
-   }
+      time: Time): Either[ValidationError, TransferTransactionV1] = {
+    val flagConditionSender = SecurityChecker.checkAddress(request.sender)
+    val flagConditionRecipient = SecurityChecker.checkAddress(request.recipient)
+    val flagCondition = flagConditionSender || flagConditionRecipient
+    if (flagCondition) {
+      for {
+        sender <- wallet.findPrivateKey(request.sender)
+        signer <- if (request.sender == signerAddress) Right(sender)
+        else wallet.findPrivateKey(signerAddress)
+        recipientAcc <- AddressOrAlias.fromString(request.recipient)
+        tx <- TransferTransactionV1.signed(
+          request.assetId.map(s => ByteStr.decodeBase58(s).get),
+          sender,
+          recipientAcc,
+          request.amount,
+          request.timestamp.getOrElse(time.getTimestamp()),
+          request.feeAssetId.map(s => ByteStr.decodeBase58(s).get),
+          request.fee,
+          signer
+        )
+      } yield tx
+    } else {
+      val extendedCause =
+        if (flagConditionSender && flagConditionRecipient)
+          "Sender and Recipient were marked on security check"
+        else if (flagConditionSender) "Sender is marked on security check"
+        else "Recipient is marked on security check"
+      Left(
+        ValidationError.FrozenAssetTransaction(
+          s"The transcation could not be processed due $extendedCause"))
+    }
+  }
 //    for {
 //      sender <- wallet.findPrivateKey(request.sender)
 //      signer <- if (request.sender == signerAddress) Right(sender)
@@ -91,35 +103,38 @@ object TransactionFactory {
       wallet: Wallet,
       signerAddress: String,
       time: Time): Either[ValidationError, TransferTransactionV2] = {
-          val flagConditionSender = SecurityChecker.checkAddress(request.sender)
-          val flagConditionRecipient = SecurityChecker.checkAddress(request.recipient)
-          val flagCondition =  flagConditionSender || flagConditionRecipient
-          if (flagCondition) {
-            val extendedCause = if (flagConditionSender && flagConditionRecipient)
-                                        "Sender and Recipient were marked on security check"
-                              else if (flagConditionSender) "Sender is marked on security check"
-                              else "Recipient is marked on security check"
-              Left(ValidationError.FrozenAssetTransaction(s"The transcation could not be processed due $extendedCause"))
-          } else {
-            for {
-              sender <- wallet.findPrivateKey(request.sender)
-              signer <- if (request.sender == signerAddress) Right(sender)
-              else wallet.findPrivateKey(signerAddress)
-              recipientAcc <- AddressOrAlias.fromString(request.recipient)
-              tx <- TransferTransactionV2.signed(
-                request.version,
-                request.assetId.map(s => ByteStr.decodeBase58(s).get),
-                sender,
-                recipientAcc,
-                request.amount,
-                request.timestamp.getOrElse(time.getTimestamp()),
-                request.feeAssetId.map(s => ByteStr.decodeBase58(s).get),
-                request.fee,
-                signer
-              )
-            } yield tx
-          }
+    val flagConditionSender = SecurityChecker.checkAddress(request.sender)
+    val flagConditionRecipient = SecurityChecker.checkAddress(request.recipient)
+    val flagCondition = flagConditionSender || flagConditionRecipient
+    if (flagCondition) {
+      val extendedCause =
+        if (flagConditionSender && flagConditionRecipient)
+          "Sender and Recipient were marked on security check"
+        else if (flagConditionSender) "Sender is marked on security check"
+        else "Recipient is marked on security check"
+      Left(
+        ValidationError.FrozenAssetTransaction(
+          s"The transcation could not be processed due $extendedCause"))
+    } else {
+      for {
+        sender <- wallet.findPrivateKey(request.sender)
+        signer <- if (request.sender == signerAddress) Right(sender)
+        else wallet.findPrivateKey(signerAddress)
+        recipientAcc <- AddressOrAlias.fromString(request.recipient)
+        tx <- TransferTransactionV2.signed(
+          request.version,
+          request.assetId.map(s => ByteStr.decodeBase58(s).get),
+          sender,
+          recipientAcc,
+          request.amount,
+          request.timestamp.getOrElse(time.getTimestamp()),
+          request.feeAssetId.map(s => ByteStr.decodeBase58(s).get),
+          request.fee,
+          signer
+        )
+      } yield tx
     }
+  }
 //    for {
 //      sender <- wallet.findPrivateKey(request.sender)
 //      signer <- if (request.sender == signerAddress) Right(sender)
@@ -149,37 +164,42 @@ object TransactionFactory {
       wallet: Wallet,
       signerAddress: String,
       time: Time): Either[ValidationError, MassTransferTransaction] = {
-        val flagConditionSender = SecurityChecker.checkAddress(request.sender)
-        val flagConditionRecipient = request.transfers.exists(x => SecurityChecker.checkAddress(x.recipient))
-        val flagCondition =  flagConditionSender || flagConditionRecipient
-        if (flagCondition) {
-          val extendedCause = if (flagConditionSender && flagConditionRecipient)
-                                      "Sender and Recipient were marked on security check"
-                              else if (flagConditionSender) "Sender is marked on security check"
-                              else "Recipient is marked on security check"
-          Left(ValidationError.FrozenAssetTransaction(s"The transcation could not be processed due $extendedCause"))
-        } else {
-          for {
-            sender <- wallet.findPrivateKey(request.sender)
-            signer <- if (request.sender == signerAddress) Right(sender)
-            else wallet.findPrivateKey(signerAddress)
-            transfers <- MassTransferTransaction.parseTransfersList(request.transfers)
-            tx <- MassTransferTransaction.signed(
-              request.version,
-              request.assetId.map(s => ByteStr.decodeBase58(s).get),
-              sender,
-              transfers,
-              request.timestamp.getOrElse(time.getTimestamp()),
-              request.fee,
-              request.attachment
-                .filter(_.nonEmpty)
-                .map(Base58.decode(_).get)
-                .getOrElse(Array.emptyByteArray),
-              signer
-            )
-          } yield tx
-        }
-      }
+    val flagConditionSender = SecurityChecker.checkAddress(request.sender)
+    val flagConditionRecipient =
+      request.transfers.exists(x => SecurityChecker.checkAddress(x.recipient))
+    val flagCondition = flagConditionSender || flagConditionRecipient
+    if (flagCondition) {
+      val extendedCause =
+        if (flagConditionSender && flagConditionRecipient)
+          "Sender and Recipient were marked on security check"
+        else if (flagConditionSender) "Sender is marked on security check"
+        else "Recipient is marked on security check"
+      Left(
+        ValidationError.FrozenAssetTransaction(
+          s"The transcation could not be processed due $extendedCause"))
+    } else {
+      for {
+        sender <- wallet.findPrivateKey(request.sender)
+        signer <- if (request.sender == signerAddress) Right(sender)
+        else wallet.findPrivateKey(signerAddress)
+        transfers <- MassTransferTransaction.parseTransfersList(
+          request.transfers)
+        tx <- MassTransferTransaction.signed(
+          request.version,
+          request.assetId.map(s => ByteStr.decodeBase58(s).get),
+          sender,
+          transfers,
+          request.timestamp.getOrElse(time.getTimestamp()),
+          request.fee,
+          request.attachment
+            .filter(_.nonEmpty)
+            .map(Base58.decode(_).get)
+            .getOrElse(Array.emptyByteArray),
+          signer
+        )
+      } yield tx
+    }
+  }
 //    for {
 //      sender <- wallet.findPrivateKey(request.sender)
 //      signer <- if (request.sender == signerAddress) Right(sender)
@@ -209,7 +229,7 @@ object TransactionFactory {
                 wallet: Wallet,
                 signerAddress: String,
                 time: Time): Either[ValidationError, SetScriptTransaction] =
-  //todo: Verificar a finalidade desta chamada
+    //todo: Verificar a finalidade desta chamada
     for {
       sender <- wallet.findPrivateKey(request.sender)
       signer <- if (request.sender == signerAddress) Right(sender)
@@ -400,11 +420,11 @@ object TransactionFactory {
               wallet: Wallet,
               signerAddress: String,
               time: Time): Either[ValidationError, CreateAliasTransactionV1] =
-  //todo: check to see if should insert Validation Error for Frozen Asset
-  /*
+    //todo: check to see if should insert Validation Error for Frozen Asset
+    /*
   Insert match case for
 
-   */
+     */
     for {
       sender <- wallet.findPrivateKey(request.sender)
       signer <- if (request.sender == signerAddress) Right(sender)
