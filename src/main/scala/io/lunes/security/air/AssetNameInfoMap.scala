@@ -1,6 +1,6 @@
 package io.lunes.security.air
 
-import io.lunes.state.Blockchain
+import io.lunes.state.{Blockchain, ByteStr}
 import io.lunes.transaction.AssetId
 import scorex.account.{Address, PublicKeyAccount}
 
@@ -17,6 +17,9 @@ case class AssetMapList[A](var map: Map[AssetName, A])
   * Retrieve Assets Information
   */
 object RetrieveAssetInfo {
+
+  val emptyAsset = ByteStr(Array.emptyByteArray)
+  val emptyPublicKey = Array.emptyByteArray
 
   /**
     * Get a [[AssetMapList]] for the Blockchain given an [[Address]] object
@@ -35,6 +38,7 @@ object RetrieveAssetInfo {
           blockchain.assetDescription(asset) match {
             case Some(x) =>
               (x.name.map(_.toChar).mkString, asset) // Convert Asset name to String
+            case None => ("", emptyAsset)
           }
         })
         .toMap
@@ -64,6 +68,7 @@ object RetrieveAssetInfo {
         .map(asset => {
           blockchain.assetDescription(asset) match {
             case Some(x) => (x.name.map(_.toChar).mkString, x.issuer.publicKey)
+            case None    => ("", emptyPublicKey)
           }
         })
         .toMap
