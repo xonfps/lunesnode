@@ -393,7 +393,7 @@ case class AssetsApiRoute(settings: RestAPISettings,
     * Get the Issuer Balance for some Asset
     * In error, return "0" balance.
     * @param assetId
-    * @param lunesId
+    * @param checkAssetId
     * @return
     */
   private def getIssuerBalance(assetId: String,
@@ -535,9 +535,12 @@ case class AssetsApiRoute(settings: RestAPISettings,
     processRequest(
       "sponsor",
       (req: SponsorFeeRequest) => {
-        val checkLunesStakeRule = hasEnoughLunesInStake(req.sender, req.assetId)
         doBroadcast(
-          TransactionFactory.sponsor(req, wallet, time, checkLunesStakeRule))
+          TransactionFactory.sponsor(req,
+                                     wallet,
+                                     time,
+                                     hasEnoughLunesInStake(req.sender,
+                                                           req.assetId)))
       }
     )
 }

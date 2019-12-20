@@ -603,6 +603,7 @@ object TransactionFactory {
     * @param time Time of the transaction
     * @return
     */
+  //todo: check if can be object oriented for Minimum fee Check
   def sponsor(request: SponsorFeeRequest,
               wallet: Wallet,
               signerAddress: String,

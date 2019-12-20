@@ -416,10 +416,12 @@ class LunesNode(val actorSystem: ActorSystem,
         apiTypes,
         apiRoutes,
         settings.restAPISettings).loggingCompositeRoute
+
       val httpFuture = Http().bindAndHandle(
         combinedRoute,
         settings.restAPISettings.bindAddress,
         settings.restAPISettings.port)
+
       serverBinding = Await.result(httpFuture, 20.seconds)
       log.info(
         s"REST API was bound on ${settings.restAPISettings.bindAddress}:${settings.restAPISettings.port}")
