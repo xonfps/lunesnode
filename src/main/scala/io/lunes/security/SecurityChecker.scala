@@ -12,7 +12,7 @@ object SecurityChecker {
 
   val frozen = FrozenAssetList(List.empty)
 
-  def checkAddress(input: String) : Boolean = bannedAddress.banned(input)
+  def checkAddress(input: String): Boolean = bannedAddress.banned(input)
 
   def checkFrozenAsset(account: String, assetId: String): Boolean =
     frozen.checksWith(account, assetId)

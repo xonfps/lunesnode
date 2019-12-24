@@ -1,7 +1,5 @@
 package io.lunes.security
 
-import io.lunes.state.ByteStr
-
 /**
   * Asset Information Retrieval Package
   */

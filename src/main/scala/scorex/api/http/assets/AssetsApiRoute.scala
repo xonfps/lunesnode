@@ -324,20 +324,19 @@ case class AssetsApiRoute(settings: RestAPISettings,
       * Check if the address has enough lunes int its wallet
       */
     val issuerLunesBalance = issuerForAsset(assetId) match {
-      case Right(x) => blockchain.portfolio(x).balance
+      case Right(x)    => blockchain.portfolio(x).balance
       case Left(value) => 0L
     }
 
     val addressLunesBalance = Address.fromString(address) match {
       case Right(acc) => blockchain.portfolio(acc).balance
-      case Left(_)  => 0
+      case Left(_)    => 0
     }
 
     val lunesMinimumFee = 2000000000000L // 20K Lunes
 
     (issuerLunesBalance >= lunesMinimumFee) || (addressLunesBalance >= lunesMinimumFee)
   }
-
 
   /**
     * Get Assets Information for all assets for address.
@@ -431,7 +430,8 @@ case class AssetsApiRoute(settings: RestAPISettings,
     * Inner method for acquire Issuer for an Asset
     * @param assetId Asset String ID
     */
-  private def issuerForAsset(assetId: String): Either[ValidationError, Address] = {
+  private def issuerForAsset(
+      assetId: String): Either[ValidationError, Address] = {
     val assetDt = assetDetails(assetId) match {
       case Left(x) => None
 
@@ -439,15 +439,18 @@ case class AssetsApiRoute(settings: RestAPISettings,
     }
 
     val maybeIssuer = assetDt match {
-      case None => Left(ValidationError.InvalidAddress)
+      case None        => Left(ValidationError.InvalidAddress)
       case Some(value) => Address.fromString(value)
     }
 
-    val issuer = maybeIssuer match {
-      case Left(x:ValidationError) => Left(x)
-      case Right(value) => Right(value)
+    maybeIssuer match {
+      case Left(x: ValidationError) => Left(x)
+      case Right(value)             => Right(value)
+      case _ =>
+        Left(
+          ValidationError.InvalidAddress(
+            "Could not retrieve Address for Token Issuer."))
     }
-    issuer
   }
 
 //  @Path("/sponsor")

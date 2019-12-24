@@ -2,7 +2,7 @@ package io.lunes.security.air
 
 import io.lunes.state.{Blockchain, ByteStr}
 import io.lunes.transaction.AssetId
-import scorex.account.{Address, PublicKeyAccount}
+import scorex.account.Address
 
 //case class AssetNameIdMap(name: String, assetId:AssetId)
 //todo: implement this

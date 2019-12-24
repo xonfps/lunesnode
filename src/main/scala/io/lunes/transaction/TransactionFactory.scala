@@ -189,7 +189,7 @@ object TransactionFactory {
         signer <- if (request.sender == signerAddress) Right(sender)
         else wallet.findPrivateKey(signerAddress)
         script <- request.script match {
-          case None => Right(None)
+          case None    => Right(None)
           case Some(s) => Script.fromBase64String(s).map(Some(_))
         }
         tx <- SetScriptTransaction.signed(
@@ -215,7 +215,7 @@ object TransactionFactory {
                    time: Time): Either[ValidationError, IssueTransactionV2] = {
     val flagCondition = SecurityChecker.checkAddress(request.sender)
     if (flagCondition) {
-      val extendedCause ="Sender is marked on security check"
+      val extendedCause = "Sender is marked on security check"
       Left(
         ValidationError.FrozenAssetTransaction(
           s"The transcation could not be processed due $extendedCause"))
@@ -225,7 +225,7 @@ object TransactionFactory {
         signer <- if (request.sender == signerAddress) Right(sender)
         else wallet.findPrivateKey(signerAddress)
         s <- request.script match {
-          case None => Right(None)
+          case None    => Right(None)
           case Some(s) => Script.fromBase64String(s).map(Some(_))
         }
         tx <- IssueTransactionV2.signed(
@@ -378,7 +378,7 @@ object TransactionFactory {
       time: Time): Either[ValidationError, LeaseCancelTransactionV1] = {
     val flagCondition = SecurityChecker.checkAddress(request.sender)
     if (flagCondition) {
-      val extendedCause ="Sender is marked on security check"
+      val extendedCause = "Sender is marked on security check"
       Left(
         ValidationError.FrozenAssetTransaction(
           s"The transcation could not be processed due $extendedCause"))
@@ -411,7 +411,7 @@ object TransactionFactory {
       time: Time): Either[ValidationError, LeaseCancelTransactionV2] = {
     val flagCondition = SecurityChecker.checkAddress(request.sender)
     if (flagCondition) {
-      val extendedCause ="Sender is marked on security check"
+      val extendedCause = "Sender is marked on security check"
       Left(
         ValidationError.FrozenAssetTransaction(
           s"The transcation could not be processed due $extendedCause"))
@@ -444,7 +444,7 @@ object TransactionFactory {
               time: Time): Either[ValidationError, CreateAliasTransactionV1] = {
     val flagCondition = SecurityChecker.checkAddress(request.sender)
     if (flagCondition) {
-      val extendedCause ="Sender is marked on security check"
+      val extendedCause = "Sender is marked on security check"
       Left(
         ValidationError.FrozenAssetTransaction(
           s"The transcation could not be processed due $extendedCause"))
@@ -511,7 +511,7 @@ object TransactionFactory {
       time: Time): Either[ValidationError, ReissueTransactionV1] = {
     val flagCondition = SecurityChecker.checkAddress(request.sender)
     if (flagCondition) {
-      val extendedCause ="Sender is marked on security check"
+      val extendedCause = "Sender is marked on security check"
       Left(
         ValidationError.FrozenAssetTransaction(
           s"The transcation could not be processed due $extendedCause"))

@@ -1,7 +1,7 @@
 package scorex.api.http
 
 import akka.http.scaladsl.model.{StatusCode, StatusCodes}
-import play.api.libs.json.{JsError, JsObject}
+import play.api.libs.json.JsError
 
 //WALLET
 
