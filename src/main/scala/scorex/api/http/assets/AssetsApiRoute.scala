@@ -41,7 +41,7 @@ case class AssetsApiRoute(settings: RestAPISettings,
     with BroadcastRoute {
   val MaxAddressesPerRequest = 1000
 
-  override lazy val route : Route=
+  override lazy val route =
     pathPrefix("assets") {
       balance ~ balances ~ issue ~ reissue ~ burnRoute ~ transfer ~ massTransfer ~ signOrder ~ balanceDistribution ~ details
     }
