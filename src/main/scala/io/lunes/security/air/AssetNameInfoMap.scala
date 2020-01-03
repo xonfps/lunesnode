@@ -8,7 +8,7 @@ import scorex.account.Address
 //todo: implement this
 /**
   * Asset Map Lists
-  * @param map
+  * @param map Maps Asset Name to Object
   * @tparam A  Generic element to which map
   */
 case class AssetMapList[A](var map: Map[AssetName, A])
@@ -19,7 +19,7 @@ case class AssetMapList[A](var map: Map[AssetName, A])
 object RetrieveAssetInfo {
 
   val emptyAsset = ByteStr(Array.emptyByteArray)
-  val emptyPublicKey = Array.emptyByteArray
+  val emptyPublicKey :Array[Byte] = Array.emptyByteArray
 
   /**
     * Get a [[AssetMapList]] for the Blockchain given an [[Address]] object

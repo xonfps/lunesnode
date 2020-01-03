@@ -1,6 +1,7 @@
 package scorex.api.http.assets
 
 import akka.http.scaladsl.server.Route
+import akka.stream.stage.Directive
 import com.google.common.base.Charsets
 import io.lunes.settings.RestAPISettings
 import io.lunes.state.diffs.CommonValidation
@@ -18,11 +19,7 @@ import io.lunes.transaction.assets.IssueTransaction
 import io.lunes.transaction.assets.exchange.Order
 import io.lunes.transaction.assets.exchange.OrderJson._
 import io.lunes.transaction.smart.script.ScriptCompiler
-import io.lunes.transaction.{
-  AssetIdStringLength,
-  TransactionFactory,
-  ValidationError
-}
+import io.lunes.transaction.{AssetIdStringLength, TransactionFactory, ValidationError}
 import io.lunes.transaction.ValidationError.GenericError
 //import java.io
 
@@ -44,7 +41,7 @@ case class AssetsApiRoute(settings: RestAPISettings,
     with BroadcastRoute {
   val MaxAddressesPerRequest = 1000
 
-  override lazy val route =
+  override lazy val route : Route=
     pathPrefix("assets") {
       balance ~ balances ~ issue ~ reissue ~ burnRoute ~ transfer ~ massTransfer ~ signOrder ~ balanceDistribution ~ details
     }
