@@ -3,7 +3,7 @@ import sbt._
 
 enablePlugins(GitVersioning)
 git.useGitDescribe := true
-git.baseVersion := "0.0.5"
+git.baseVersion := "0.0.7"
 name := "LunesNode"
 mainClass in Compile := Some("io.lunes.LunesNode")
 
