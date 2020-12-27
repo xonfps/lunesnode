@@ -18,9 +18,6 @@ target
 .editorconfig
 .DS_Store
 
-# logs
-*.log
-
 # local settings
 localsettings.json
 local.conf
