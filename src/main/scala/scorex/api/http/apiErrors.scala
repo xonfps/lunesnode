@@ -87,3 +87,10 @@ case class InsufficientLunesInStake(msg: String) extends ApiError {
   override val message: String = s"insufficient LUNES in stake per: $msg"
   override val code: StatusCode = StatusCodes.BadRequest
 }
+
+case class FrozenAssetTransaction(msg: String) extends ApiError {
+  override val id: Int = 116
+  override val message: String =
+    s"The Request Transaction Asset has been issued with a Freeze Order: $msg"
+  override val code: StatusCode = StatusCodes.BadRequest
+}
