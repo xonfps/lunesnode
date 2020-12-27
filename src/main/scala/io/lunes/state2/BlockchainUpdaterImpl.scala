@@ -101,7 +101,7 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateRea
   /** Synchronize Persisted and In-Memory objects. This is method is restricted to the package [[io.lunes]].
     */
   private[lunes] def syncPersistedAndInMemory(): Unit = write("syncPersistedAndInMemory") { implicit l =>
-    log.debug(heights("State rebuild started"))
+    log.info(heights("State rebuild started"))
 
     val notPersisted = historyWriter.height() - persisted.height
     val inMemSize = Math.min(notPersisted, minBlocksInMemory)
@@ -117,7 +117,7 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateRea
 
     inMemDiffs.set(unsafeDiffByRange(persisted, historyWriter.height() + 1))
     updateHeightInfo()
-    log.debug(heights("State rebuild finished"))
+    log.info(heights("State rebuild finished"))
   }
 
   /** Returns a String with a feature list.
@@ -241,7 +241,7 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateRea
           historyReader.lastBlockId().foreach(id =>
             internalLastBlockInfo.onNext(LastBlockInfo(id, historyReader.height(), historyReader.score(), blockchainReady)))
           updateHeightInfo()
-          log.debug(s"$block appended. New height: $height)")
+          log.info(s"$block appended. New height: $height)")
           discarded
         }
       })

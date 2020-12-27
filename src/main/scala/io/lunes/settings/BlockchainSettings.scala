@@ -5,10 +5,8 @@ import io.lunes.state2.ByteStr
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.EnumerationReader._
-
 import scala.concurrent.duration._
 
-import io.lunes.features.BlockchainFeatures
 
 /**
   *
@@ -65,22 +63,23 @@ object FunctionalitySettings {
     allowMultipleLeaseCancelTransactionUntilTimestamp = 0,
     resetEffectiveBalancesAtHeight = 1,
     blockVersion3AfterHeight = 0,
-    preActivatedFeatures = BlockchainFeatures.preActivated,
+    preActivatedFeatures = Map.empty,
     doubleFeaturesPeriodsAfterHeight = 810000)
+
 
   val TESTNET = apply(
     featureCheckBlocksPeriod = 3000,
     blocksForFeatureActivation = 2700,
-    allowTemporaryNegativeUntil = 1477958400000L,
-    requireSortedTransactionsAfter = 1477958400000L,
+    allowTemporaryNegativeUntil = Constants.TestTimestamp,
+    requireSortedTransactionsAfter = Constants.TestTimestamp,
     generationBalanceDepthFrom50To1000AfterHeight = 0,
     minimalGeneratingBalanceAfter = 0,
-    allowTransactionsFromFutureUntil = 1478100000000L,
-    allowUnissuedAssetsUntil = 1479416400000L,
-    allowInvalidReissueInSameBlockUntilTimestamp = 1492560000000L,
-    allowMultipleLeaseCancelTransactionUntilTimestamp = 1492560000000L,
-    resetEffectiveBalancesAtHeight = 51500,
-    blockVersion3AfterHeight = 161700,
+    allowTransactionsFromFutureUntil = 0,
+    allowUnissuedAssetsUntil = 0,
+    allowInvalidReissueInSameBlockUntilTimestamp = 0,
+    allowMultipleLeaseCancelTransactionUntilTimestamp = 0,
+    resetEffectiveBalancesAtHeight = 1,
+    blockVersion3AfterHeight = 0,
     preActivatedFeatures = Map.empty,
     doubleFeaturesPeriodsAfterHeight = Int.MaxValue)
 
