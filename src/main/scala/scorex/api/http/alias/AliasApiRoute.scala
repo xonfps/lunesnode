@@ -100,10 +100,39 @@ case class AliasApiRoute(settings: RestAPISettings,
         .map(acc => blockchain.aliasesOfAddress(acc).map(_.stringRepr))
         .left
         .map(ApiError.fromValidationError)
-      complete(result)
+
+      val jsonResult: Either[ApiError, AliasTree] = result match {
+        case Left(x) => Left(x)
+        case Right(x) => {
+          val stringResults = x.toList
+
+          val stringLists = stringResults.map(x => {
+            val Array(a, b, c) = x.split(":")
+            List(a, b, c)
+          })
+
+          val callEntities =
+            (for (List(a, b, c) <- stringLists if (a == "alias"))
+              yield
+                (b, for (List(a, b, c) <- stringLists) yield c)).head //todo: fix it to unique
+
+          val (netCode, aliasesList) = callEntities
+
+          Right(AliasTree(aliasesList))
+        }
+      }
+
+      complete(jsonResult)
   }
 
   case class Address(address: String)
 
+  case class NetAliases(netCode: Int, Aliases: List[String])
+
+  case class AliasTree(alias: List[String])
+
   implicit val addressFormat: Format[Address] = Json.format
+
+  implicit val aliasTreeFormat: Format[AliasTree] = Json.format
+
 }

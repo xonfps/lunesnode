@@ -1,14 +1,12 @@
-import com.typesafe.sbt.packager.archetypes.TemplateWriter
-import sbt.Keys.{sourceGenerators, _}
+import sbt.Keys._
 import sbt._
-import sbtcrossproject.CrossPlugin.autoImport.crossProject
 import sbtassembly.MergeStrategy
+import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 enablePlugins(JavaServerAppPackaging,
               JDebPackaging,
               SystemdPlugin,
               GitVersioning)
-scalafmtOnCompile in ThisBuild := true
 
 val network = SettingKey[Network]("network")
 network := { Network(sys.props.get("network")) }
