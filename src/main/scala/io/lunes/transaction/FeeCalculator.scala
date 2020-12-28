@@ -8,9 +8,8 @@ import io.lunes.transaction.TransactionParser.TransactionType
 import io.lunes.transaction.ValidationError.GenericError
 import io.lunes.transaction.assets.MassTransferTransaction
 
-/**
-  * Class to check, that transaction contains enough fee to put it to UTX pool
-  * @param settings
+/** Class to check, that transaction contains enough fee to put it to UTX pool
+  * @param settings The settings for the Transaction.
   */
 class FeeCalculator(settings: FeesSettings) {
 
@@ -26,11 +25,10 @@ class FeeCalculator(settings: FeesSettings) {
     }
   }
 
-  /**
-    *
-    * @param tx
-    * @tparam T
-    * @return
+  /** Validates if the Calculated Fee is enough for the Transaction.
+    * @param tx The Transaction descendant object.
+    * @tparam T Type Parameter descendant of [[Transaction]].
+    * @return Returns Either type parameter T (case Success) or ValidationError (case Failure).
     */
   def enoughFee[T <: Transaction](tx: T): Either[ValidationError, T] = {
     val feeSpec = map.get(TransactionAssetFee(tx.transactionType.id, tx.assetFee._1).key)
@@ -54,10 +52,9 @@ class FeeCalculator(settings: FeesSettings) {
   }
 }
 
-/**
-  *
-  * @param txType
-  * @param assetId
+/** Case Class for Transaction Asset Fees.
+  * @param txType Transaction Type.
+  * @param assetId An Option for Asset ID.
   */
 case class TransactionAssetFee(txType: Int, assetId: Option[AssetId]) {
 

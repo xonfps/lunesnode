@@ -2,10 +2,9 @@ package io.lunes.transaction
 
 import scorex.account.Address
 
-/**
-  *
-  * @param account
-  * @param assetId
+/** Asset Account Mapping.
+  * @param account The [[Address]] for the Account.
+  * @param assetId The AssetID.
   */
 case class AssetAcc(account: Address, assetId: Option[AssetId]) {
   lazy val key: String = assetId match {

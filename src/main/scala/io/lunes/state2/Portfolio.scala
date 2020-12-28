@@ -5,11 +5,10 @@ import cats.kernel.instances.map._
 import cats.Monoid
 import scorex.block.Block.Fraction
 
-/**
-  *
-  * @param balance
-  * @param leaseInfo
-  * @param assets
+/** Case Class for Portfolio.
+  * @param balance The Portfolio balance.
+  * @param leaseInfo The Lease Information for the Portfolio object.
+  * @param assets A Map for Asset ID into Long.
   * @todo verificar a necessidade de case class
   */
 case class Portfolio(balance: Long, leaseInfo: LeaseInfo, assets: Map[ByteStr, Long]) {
@@ -19,9 +18,7 @@ case class Portfolio(balance: Long, leaseInfo: LeaseInfo, assets: Map[ByteStr, L
   lazy val isEmpty: Boolean = this == Portfolio.portfolioMonoid.empty
 }
 
-/**
-  *
-  */
+/** The Portfolio Companion Object.*/
 object Portfolio {
 
   implicit val longSemigroup: Semigroup[Long] = (x: Long, y: Long) => safeSum(x, y)
@@ -29,12 +26,6 @@ object Portfolio {
   implicit val portfolioMonoid = new Monoid[Portfolio] {
     override val empty: Portfolio = Portfolio(0L, Monoid[LeaseInfo].empty, Map.empty)
 
-    /**
-      *
-      * @param older
-      * @param newer
-      * @return
-      */
     override def combine(older: Portfolio, newer: Portfolio): Portfolio
     = Portfolio(
       balance = safeSum(older.balance, newer.balance),
@@ -42,8 +33,13 @@ object Portfolio {
       assets = Monoid.combine(older.assets, newer.assets))
   }
 
+  /** implicit class for Portfolio Extension.
+    * @param self The reference for the Portfolio itself.
+    */
   implicit class PortfolioExt(self: Portfolio) {
-
+    /** Gets a pessimistic version of a Portfolio.
+      * @return Returns a Portfolio with pessimistic estimates.
+      */
     def pessimistic: Portfolio = Portfolio(
       balance = Math.min(self.balance, 0),
       leaseInfo = LeaseInfo(
@@ -53,18 +49,16 @@ object Portfolio {
       assets = self.assets.filter { case (_, v) => v < 0 }
     )
 
-    /**
-      *
+    /** Gets a Multiplied version of the Portfolio given a Fraction.
       * @param f
       * @return
       */
     def multiply(f: Fraction): Portfolio =
       Portfolio(f(self.balance), LeaseInfo.empty, self.assets.mapValues(f.apply))
 
-    /**
-      *
-      * @param other
-      * @return
+    /** Gets a operated version of the Portfolio given an other Portfolio.
+      * @param other The portfolio of which to difference.
+      * @return Returns the operated Portfolio.
       */
     def minus(other: Portfolio): Portfolio =
       Portfolio(self.balance - other.balance, LeaseInfo.empty,

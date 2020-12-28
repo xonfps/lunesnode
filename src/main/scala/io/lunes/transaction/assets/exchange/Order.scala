@@ -16,44 +16,59 @@ import io.lunes.transaction.assets.exchange.Validation.booleanOperators
 
 import scala.util.Try
 
+/** Trait for Order Type for ADT construction.*/
 sealed trait OrderType {
   def bytes: Array[Byte]
 }
 
+/** Companion Object for Order Type.*/
 object OrderType {
 
+  /** ADT value for [[OrderType]] -- BUY. */
   case object BUY extends OrderType {
     def bytes: Array[Byte] = Array(0.toByte)
 
     override def toString: String = "buy"
   }
 
+  /** ADT value for [[OrderType]] -- SELL. */
   case object SELL extends OrderType {
     def bytes: Array[Byte] = Array(1.toByte)
 
     override def toString: String = "sell"
   }
 
+  /** The Application Method for OrderType CO.
+    * @param value The Value for the OrderType ADT values. Input 0 for [[OrderType.BUY]] or 1 for [[OrderType.SELL]]. Throws RuntimeException otherwise.
+    * @return
+    */
   def apply(value: Int): OrderType = value match {
     case 0 => OrderType.BUY
     case 1 => OrderType.SELL
     case _ => throw new RuntimeException("Unexpected OrderType")
   }
 
+  /** Alternative Application Method for OrderType CO.
+    * @param value The Value for the OrderType ADT values. Input "buy" for [[OrderType.BUY]] or "sell" for [[OrderType.SELL]]. Throws RuntimeException otherwise.
+    * @return
+    */
   def apply(value: String): OrderType = value match {
     case "buy" => OrderType.BUY
     case "sell" => OrderType.SELL
     case _ => throw new RuntimeException("Unexpected OrderType")
   }
 
+  /** Reverses the OrderType.
+    * @param orderType The object on which you want to reverse the Order Type.
+    * @return Returns the reversed OrderType object.
+    */
   def reverse(orderType: OrderType): OrderType = orderType match {
     case BUY => SELL
     case SELL => BUY
   }
 }
 
-/**
-  * Order to matcher service for asset exchange
+/** Case Class representing the order to match service for asset exchange.
   */
 case class Order(@ApiModelProperty(dataType = "java.lang.String") senderPublicKey: PublicKeyAccount,
                  @ApiModelProperty(dataType = "java.lang.String", example = "") matcherPublicKey: PublicKeyAccount,
@@ -74,6 +89,10 @@ case class Order(@ApiModelProperty(dataType = "java.lang.String") senderPublicKe
   val sender = senderPublicKey
   val signatureValid = Coeval.evalOnce(crypto.verify(signature, toSign, senderPublicKey.publicKey))
 
+  /** Validates the Order given a Time.
+    * @param atTime The input Time.
+    * @return Returns a [[Validation]].
+    */
   def isValid(atTime: Long): Validation = {
     isValidAmount(price, amount) &&
       assetPair.isValid &&
@@ -84,6 +103,11 @@ case class Order(@ApiModelProperty(dataType = "java.lang.String") senderPublicKe
       (expiration >= atTime) :| "expiration should be > currentTime"
   }
 
+  /** Validates the amount given a price.
+    * @param matchPrice The input price.
+    * @param matchAmount The amount to validate.
+    * @return Returns a [[Validation]].
+    */
   def isValidAmount(matchPrice: Long, matchAmount: Long): Validation = {
     (matchAmount > 0) :| "amount should be > 0" &&
       (matchPrice > 0) :| "price should be > 0" &&
@@ -94,6 +118,9 @@ case class Order(@ApiModelProperty(dataType = "java.lang.String") senderPublicKe
       (getReceiveAmount(matchPrice, matchAmount).getOrElse(0L) > 0) :| "ReceiveAmount should be > 0"
   }
 
+  /** Transforms the Order into a Signed object.
+    * @return The Raw data.
+    */
   def toSign: Array[Byte] = senderPublicKey.publicKey ++ matcherPublicKey.publicKey ++
     assetPair.bytes ++ orderType.bytes ++
     Longs.toByteArray(price) ++ Longs.toByteArray(amount) ++
@@ -109,18 +136,29 @@ case class Order(@ApiModelProperty(dataType = "java.lang.String") senderPublicKe
   @ApiModelProperty(hidden = true)
   val bytes: Coeval[Array[Byte]] = Coeval.evalOnce(toSign ++ signature)
 
+  /** Gets the Receive Asset ID.
+    * @return Returns an Option for Asset ID.
+    */
   @ApiModelProperty(hidden = true)
   def getReceiveAssetId: Option[AssetId] = orderType match {
     case OrderType.BUY => assetPair.amountAsset
     case OrderType.SELL => assetPair.priceAsset
   }
 
+  /** Gets a Spend Asset ID.
+    * @return Returns an Option for Asset ID.
+    */
   @ApiModelProperty(hidden = true)
   def getSpendAssetId: Option[AssetId] = orderType match {
     case OrderType.BUY => assetPair.priceAsset
     case OrderType.SELL => assetPair.amountAsset
   }
 
+  /**
+    * @param matchPrice
+    * @param matchAmount
+    * @return
+    */
   @ApiModelProperty(hidden = true)
   def getSpendAmount(matchPrice: Long, matchAmount: Long): Either[ValidationError, Long] = Try {
     if (orderType == OrderType.SELL) matchAmount

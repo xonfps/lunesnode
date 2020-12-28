@@ -18,9 +18,7 @@ import scorex.utils.{ScorexLogging, Time}
 
 import scala.util.{Left, Right}
 
-/**
-  *
-  */
+/**  Package object */
 package object appender extends ScorexLogging {
 
   private val MaxTimeDrift: Long = 100 // millis
@@ -30,9 +28,21 @@ package object appender extends ScorexLogging {
   private val height1 = 812608
   private val height2 = 813207
 
-  private[appender] def processAndBlacklistOnFailure[A, B](ch: Channel, peerDatabase: PeerDatabase, miner: Miner, allChannels: ChannelGroup,
-                                                           start: => String, success: => String, errorPrefix: String)(
-                                                            f: => Task[Either[B, Option[BigInt]]]): Task[Either[B, Option[BigInt]]] = {
+  /** Package restricted method for Process and add to a Blacklist on Failure.
+    *
+    * @param ch Inputs a Netty Channel.
+    * @param peerDatabase The PeerDatabase.
+    * @param miner The Miner object.
+    * @param allChannels The Netty Channel Group.
+    * @param start A function into String for the Starting Process.
+    * @param success A function into String for the Success case.
+    * @param errorPrefix The error Prefix.
+    * @param f A function into Task of Either Option of BigInt (case success) or type Parameter B (case Failure).
+    * @tparam A The Parametrized type A.
+    * @tparam B The Parametrized type B.
+    * @return Returns a Task for Either an Option of BigInt (case Success) or B (case Failure).
+    */
+  private[appender] def processAndBlacklistOnFailure[A, B](ch: Channel, peerDatabase: PeerDatabase, miner: Miner, allChannels: ChannelGroup,start: => String, success: => String, errorPrefix: String)(f: => Task[Either[B, Option[BigInt]]]): Task[Either[B, Option[BigInt]]] = {
 
     log.debug(start)
     f map {
@@ -47,11 +57,31 @@ package object appender extends ScorexLogging {
     }
   }
 
+  /** Validate Effective Balance
+    * @param fp Inputs a Feture Provider.
+    * @param fs Inputs a Functionality Settings.
+    * @param block Inputs a Block.
+    * @param baseHeight Inputs a base height.
+    * @param effectiveBalance Inputs a Effective Balance to validate.
+    * @return Returns Either a Long (case Success) or String (case Failure).
+    */
   private def validateEffectiveBalance(fp: FeatureProvider, fs: FunctionalitySettings, block: Block, baseHeight: Int)(effectiveBalance: Long): Either[String, Long] =
     Either.cond(block.timestamp < fs.minimalGeneratingBalanceAfter ||
       (block.timestamp >= fs.minimalGeneratingBalanceAfter && effectiveBalance >= MinimalEffectiveBalanceForGenerator), 
       effectiveBalance, s"generator's effective balance $effectiveBalance is less that required for generation")
 
+	/** Package Restricted method for append Block.
+		* @param checkpoint Inputs a Checkpoint Service.
+		* @param history Inputs a History.
+		* @param blockchainUpdater Inputs a Blockchain Updater.
+		* @param stateReader Inputs a Snapshot State Reader.
+		* @param utxStorage Inputs a Transaction Pool.
+		* @param time Sets a Time.
+		* @param settings Inputs a Lunes Settings.
+		* @param featureProvider Inputs a Feature Provider.
+		* @param block The input Block.
+		* @return Returns Either a Option for Int (case Success) or a ValidationError (case Failure).
+		*/
   private[appender] def appendBlock(checkpoint: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater,
                                     stateReader: SnapshotStateReader, utxStorage: UtxPool, time: Time, settings: LunesSettings,
                                     featureProvider: FeatureProvider)(block: Block): Either[ValidationError, Option[Int]] = for {
@@ -69,6 +99,15 @@ package object appender extends ScorexLogging {
     maybeDiscardedTxs.map(_ => baseHeight)
   }
 
+	/** Validate a Block Consensus.
+		* @param history Inputs a History.
+		* @param fp Inputs a Feature Provider.
+		* @param settings Inputs a Lunes Settings.
+		* @param currentTs Inputs the current Timestamp.
+		* @param block The input Block.
+		* @param genBalance The generated Balance. It is a Function from Int to Either a Long (case Success) or a String (case Failure).
+		* @return Returns Either a Unit (case Success) or a ValidationError (case Failure).
+		*/
   private def blockConsensusValidation(history: History, fp: FeatureProvider, settings: LunesSettings, currentTs: Long, block: Block)
                                       (genBalance: Int => Either[String, Long]): Either[ValidationError, Unit] = history.read { _ =>
 

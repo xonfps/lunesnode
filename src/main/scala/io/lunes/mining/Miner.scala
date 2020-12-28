@@ -22,10 +22,10 @@ import scorex.block.{Block, MicroBlock}
 import scorex.consensus.nxt.NxtLikeConsensusBlockData
 import scorex.utils.{ScorexLogging, Time}
 import scorex.wallet.Wallet
-
 import scala.collection.mutable.{Map => MMap}
 import scala.concurrent.Await
 import scala.concurrent.duration._
+
 
 /** Miner Trait interface*/
 trait Miner {
@@ -256,7 +256,7 @@ class MinerImpl(allChannels: ChannelGroup,
 		* @param restTotalConstraint Rest of Total Mining Constraint.
 		* @return
 		*/
-	//TODO:tailrec
+	//TODO: Transform in tailrec
   private def generateMicroBlockSequence(account: PrivateKeyAccount, accumulatedBlock: Block, delay: FiniteDuration, microEstimator: Estimator, restTotalConstraint: MiningConstraint): Task[Unit] = {
     debugState = MinerDebugInfo.MiningMicroblocks
     generateOneMicroBlockTask(account, accumulatedBlock, microEstimator, restTotalConstraint).delayExecution(delay).flatMap {
@@ -277,7 +277,7 @@ class MinerImpl(allChannels: ChannelGroup,
 		* @param account Account Private Key.
 		* @return Return the Block Task
 		*/
-	//TODO:tailrec
+	//TODO: Transform in tailrec
   private def generateBlockTask(account: PrivateKeyAccount): Task[Unit] = {
     history.read { implicit l =>
       val height = history.height()

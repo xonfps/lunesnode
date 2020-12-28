@@ -19,11 +19,26 @@ import scorex.utils.{ScorexLogging, Time}
 
 import scala.util.{Left, Right}
 
-/**
-  *
-  */
+/** Extension Appender object. */
 object ExtensionAppender extends ScorexLogging with Instrumented {
-
+  /** Factory method for a Task for Either an Option for a BigInt (case Success) or a ValidationError (case Failure).
+    * @param checkpoint The Checkpoint Object.
+    * @param history The input History object.
+    * @param blockchainUpdater The Blockchain Updater.
+    * @param stateReader The State Reader.
+    * @param utxStorage The Transaction Pool.
+    * @param time The Time for the Block.
+    * @param settings The Lunes Settings object.
+    * @param featureProvider The Feature Provider.
+    * @param invalidBlocks The Invalid Blocks Storage.
+    * @param peerDatabase The PeerDatabase.
+    * @param miner The input Miner.
+    * @param allChannels The Channel Group.
+    * @param scheduler The Scheduler.
+    * @param ch The Netty Channel.
+    * @param extensionBlocks The Sequence of Extensions Blocks.
+    * @return Returns a Task for Either an Option of BigInt (case Success) or a ValidationError (case Failure).
+    */
   def apply(checkpoint: CheckpointService, history: History, blockchainUpdater: BlockchainUpdater,
             stateReader: StateReader, utxStorage: UtxPool, time: Time, settings: LunesSettings,
             featureProvider: FeatureProvider, invalidBlocks: InvalidBlockStorage,

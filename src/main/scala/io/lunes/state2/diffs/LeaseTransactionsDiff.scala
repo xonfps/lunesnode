@@ -12,11 +12,14 @@ import io.lunes.transaction.lease.{LeaseCancelTransaction, LeaseTransaction}
 
 import scala.util.{Left, Right}
 
-/**
-  *
-  */
+/** Lease Transaction Diff object. */
 object LeaseTransactionsDiff {
-
+  /** Gets a Diff based on a LeaseTransaction object.
+    * @param s The Snapshot State Reader.
+    * @param height The height of the Transaction.
+    * @param tx the LeaseTransaction object.
+    * @return Returns Either a Diff (case Success) or a ValidationError (case Failure).
+    */
   def lease(s: SnapshotStateReader, height: Int)(tx: LeaseTransaction): Either[ValidationError, Diff] = {
     val sender = Address.fromPublicKey(tx.sender.publicKey)
     s.resolveAliasEi(tx.recipient).flatMap { recipient =>
@@ -38,14 +41,13 @@ object LeaseTransactionsDiff {
     }
   }
 
-  /**
-    *
-    * @param s
-    * @param settings
-    * @param time
-    * @param height
-    * @param tx
-    * @return
+  /** Gets a Diff based on Lease Cancel.
+    * @param s The Snapshot State Reader.
+    * @param settings The Functional Settings.
+    * @param time The Time for the Snapshot.
+    * @param height The Height of the LeaseCancelTransaction.
+    * @param tx The LeaseCancelTransaction object.
+    * @return Returns Either a Diff (case Success) or a ValidationError (case Failure).
     */
   def leaseCancel(s: SnapshotStateReader, settings: FunctionalitySettings, time: Long, height: Int)
                  (tx: LeaseCancelTransaction): Either[ValidationError, Diff] = {

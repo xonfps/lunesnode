@@ -5,10 +5,12 @@ import io.lunes.state2.{Diff, LeaseInfo, Portfolio}
 import scorex.account.Address
 import io.lunes.transaction.lease.LeaseTransaction
 
-/**
-  *
-  */
+/** Cancel Lease Overflow object.*/
 object CancelLeaseOverflow {
+  /** The Application method for the Case Lease Overflow object.
+    * @param s The Snapshot State Reader Object.
+    * @return Returns the Diff object.
+    */
   def apply(s: SnapshotStateReader): Diff = {
 
     def cancelLeaseOut(l: LeaseInfo): LeaseInfo = LeaseInfo(0, -l.leaseOut)

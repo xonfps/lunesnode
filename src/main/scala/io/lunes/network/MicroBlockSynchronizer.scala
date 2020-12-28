@@ -76,7 +76,7 @@ object MicroBlockSynchronizer {
 
       def randomOwner(exclude: Set[Channel]) = random(owners(mbInv.totalBlockSig) -- exclude)
 
-      //TODO:tailrec
+	    //TODO: Transform in Tailrec
       def task(attemptsAllowed: Int, exclude: Set[Channel]): Task[Unit] = Task.unit.flatMap { _ =>
         if (attemptsAllowed <= 0 || alreadyProcessed(totalBlockSig)) Task.unit
         else randomOwner(exclude).fold(Task.unit) { channel =>

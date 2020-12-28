@@ -25,14 +25,13 @@ import scorex.utils.ScorexLogging
 
 import scala.collection.immutable
 
-/**
-  *
-  * @param persisted
-  * @param settings
-  * @param time
-  * @param featureProvider
-  * @param historyWriter
-  * @param synchronizationToken
+/** The Blockchain Updater Implementation Class. It has a restricted constructor
+  * @param persisted The persisted State. It must be extended from StateWriter and SnapshotStateReader.
+  * @param settings The Lunes Settings.
+  * @param time The Time for the updater.
+  * @param featureProvider The Feature Provider.
+  * @param historyWriter The History Writer Implementation.
+  * @param synchronizationToken The Synchronization Token.
   */
 class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateReader,
                                     settings: LunesSettings,
@@ -61,27 +60,35 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateRea
 
   private val featuresProperties = FeaturesProperties(settings.blockchainSettings.functionalitySettings)
 
+  /** Returns a string for History Writer Height.
+    * @param prefix The input prefix.
+    * @return Returns the String for the History Writer Height.
+    */
   private def heights(prefix: String): String = read { implicit l =>
     s"$prefix, total persisted blocks: ${historyWriter.height()}, [ in-memory: ${inMemDiffs().toList.mkString(" | ")} ] + persisted: h=${persisted.height}"
   }
 
+  /** Gets the current persisted Blocks States.
+    * @return
+    */
   private def currentPersistedBlocksState: StateReader = Coeval(read { implicit l => composite(inMemDiffs(), persisted) })
 
-  /**
-    *
-    * @return
+  /** Gets the Best Liquid State.
+    * @return The Best Liquid State.
     */
   def bestLiquidState: StateReader = composite(Coeval(read { implicit l => ngState().map(_.bestLiquidDiff).orEmpty }), currentPersistedBlocksState)
 
-  /**
-    *
-    * @return
+  /** Check if Blockchain is Ready.
+    * @return Returns true if the Blockchain is ready.
     */
   def blockchainReady: Boolean = {
     val lastBlock = historyReader.lastBlockTimestamp().get
     lastBlock + maxBlockReadinessAge > time.correctedTime()
   }
 
+  /** Gets the History Reader.
+    * @return Returns a composite derived object from NgHistory, DebugNgHistory, FeatureProvider.
+    */
   def historyReader: NgHistory with DebugNgHistory with FeatureProvider = {
     new NgHistoryReader(() => read { implicit l => ngState() }, historyWriter, settings.blockchainSettings.functionalitySettings)
   }
@@ -91,6 +98,8 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateRea
     internalLastBlockInfo.onNext(LastBlockInfo(b.uniqueId, historyReader.height(), historyReader.score(), blockchainReady))
   }
 
+  /** Synchronize Persisted and In-Memory objects. This is method is restricted to the package [[io.lunes]].
+    */
   private[lunes] def syncPersistedAndInMemory(): Unit = write("syncPersistedAndInMemory") { implicit l =>
     log.info(heights("State rebuild started"))
 
@@ -111,8 +120,16 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateRea
     log.info(heights("State rebuild finished"))
   }
 
+  /** Returns a String with a feature list.
+    * @param s Input a Set of Short.
+    * @return A String.
+    */
   private def displayFeatures(s: Set[Short]): String = s"FEATURE${if (s.size > 1) "S"} ${s.mkString(", ")}${if (s.size > 1) "HAVE BEEN" else "HAS BEEN"}"
 
+  /** Get the Approved Features given a Block.
+    * @param block The input Block.
+    * @return Returns a Set of Short for features.
+    */
   private def featuresApprovedWithBlock(block: Block): Set[Short] = {
     val height = historyWriter.height() + 1
 
@@ -152,6 +169,10 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateRea
     else Set.empty
   }
 
+  /** Processes a Block returning the discarded transactions if well succeeded.
+    * @param block The block to process.
+    * @return Returns Either a Option for DiscardedTransactions (case Success) or ValidationError (case Failure).
+    */
   override def processBlock(block: Block): Either[ValidationError, Option[DiscardedTransactions]] = write("processBlock") { implicit l =>
     val height = historyWriter.height()
     val notImplementedFeatures = featureProvider.activatedFeatures(height).diff(BlockchainFeatures.implemented)
@@ -226,6 +247,10 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateRea
       })
   }
 
+  /** Remove all data after a given Block ID.
+    * @param blockId The input Block ID.
+    * @return Returns Either a Sequence of Blocks (case Success) or a ValidationError (case Failure).
+    */
   override def removeAfter(blockId: ByteStr): Either[ValidationError, Seq[Block]] = write("removeAfter") { implicit l =>
     val ng = ngState()
     if (ng.exists(_.contains(blockId))) {
@@ -279,6 +304,10 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateRea
     }
   }
 
+  /** Processes a MicroBlock returning a ValidationError on Failure.
+    * @param microBlock The input MicroBlock.
+    * @return Returns a ValidationError case it Fails.
+    */
   override def processMicroBlock(microBlock: MicroBlock): Either[ValidationError, Unit] = write("processMicroBlock") { implicit l =>
     ngState.mutate {
       case None =>
@@ -308,17 +337,25 @@ class BlockchainUpdaterImpl private(persisted: StateWriter with SnapshotStateRea
     }
   }
 
+  /** Update the Height Information.
+    */
   private def updateHeightInfo() {
     heightInfo = (currentPersistedBlocksState().height, time.getTimestamp())
   }
 
+  /** Locks Free State Height.
+    * @return Returns the Free State which have been locked.
+    */
   override def lockfreeStateHeight: HeightInfo = heightInfo
 
+  /** Shutdowns the Block.
+    */
   def shutdown(): Unit = {
     internalLastBlockInfo.onComplete()
   }
 }
 
+/** Blockchain Updater Implementation Companion Object.  */
 object BlockchainUpdaterImpl extends ScorexLogging {
 
   private val blockMicroForkStats = Kamon.metrics.counter("block-micro-fork")
@@ -327,6 +364,14 @@ object BlockchainUpdaterImpl extends ScorexLogging {
   private val microBlockForkHeightStats = Kamon.metrics.histogram("micro-block-fork-height")
   private val forgeBlockTimeStats = Kamon.metrics.histogram("forge-block-time", Time.Milliseconds)
 
+  /** Factory method for BlockChainImpl.
+    * @param persistedState Inputs an Persisted State. The object extends StateWriter with SnapshotStateReader.
+    * @param history Inputs a History.
+    * @param settings Inputs a Lunes Settings.
+    * @param time Inputs a [[scorex.utils.Time]].
+    * @param synchronizationToken Synchronization token.
+    * @return The new BlockchainUpdaterImpl.
+    */
   def apply(persistedState: StateWriter with SnapshotStateReader,
             history: HistoryWriterImpl,
             settings: LunesSettings,
@@ -335,6 +380,11 @@ object BlockchainUpdaterImpl extends ScorexLogging {
     new BlockchainUpdaterImpl(persistedState, settings, time, history, history, synchronizationToken)
   }
 
+  /** Check to see if the blocks are versions of the same.
+    * @param b1 The Fist Block.
+    * @param b2 The Second Block.
+    * @return Returns true if the versions are the same.
+    */
   def areVersionsOfSameBlock(b1: Block, b2: Block): Boolean =
     b1.signerData.generator == b2.signerData.generator &&
       b1.consensusData.baseTarget == b2.consensusData.baseTarget &&

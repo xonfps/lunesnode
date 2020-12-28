@@ -22,7 +22,7 @@ class PeerSynchronizer(peerDatabase: PeerDatabase, peerRequestInterval: FiniteDu
   /** Requests for Peer Connections.
     * @param ctx Inputs Channel Handler Context.
     */
-  //TODO: TailRec
+  //TODO: Transform in TailRec
   def requestPeers(ctx: ChannelHandlerContext): Unit = if (ctx.channel().isActive) {
     peersRequested = true
     ctx.writeAndFlush(GetPeers)
